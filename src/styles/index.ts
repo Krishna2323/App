@@ -2663,6 +2663,7 @@ const styles = (theme: ThemeColors) =>
                       // Therefore, the transition effect needs to be delayed.
                       transitionDelay: '99999s',
                       transitionProperty: 'background-color',
+                      fontSize: 0.2,
                   }
                 : {}),
         },
