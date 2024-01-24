@@ -1,9 +1,9 @@
+import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsList from '@components/OptionsList';
@@ -86,10 +86,16 @@ const getAllParticipants = (report, personalDetails, translate) =>
 
 function ReportParticipantsPage(props) {
     const styles = useThemeStyles();
-    const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
-        ...participant,
-        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
-    }));
+
+    const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => {
+        const pendingAction = lodashGet(props.policyMembers, participant.accountID, {}).pendingAction;
+
+        return {
+            ...participant,
+            isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+            pendingAction,
+        };
+    });
 
     return (
         <ScreenWrapper
@@ -149,6 +155,9 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        policyMembers: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${props.report.policyID}`,
         },
     }),
 )(ReportParticipantsPage);

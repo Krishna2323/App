@@ -1193,6 +1193,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 [sessionAccountID]: {
                     role: CONST.POLICY.ROLE.ADMIN,
                     errors: {},
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
         },
@@ -1253,6 +1254,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 [sessionAccountID]: {
                     role: CONST.POLICY.ROLE.ADMIN,
                     errors: {},
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
         },
@@ -1318,6 +1320,15 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {pendingAction: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            value: {
+                [sessionAccountID]: {
+                    pendingAction: null,
+                },
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
