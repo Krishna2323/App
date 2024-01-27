@@ -209,8 +209,6 @@ function RoomMembersPage(props) {
 
             const pendingAction = lodashGet(props.policyMembers, accountID, {}).pendingAction;
 
-            console.log(pendingAction, props.policyMembers);
-
             result.push({
                 keyForList: String(accountID),
                 accountID: Number(accountID),
@@ -321,7 +319,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY,
         },
         policyMembers: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${props.report.policyID}`,
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${props.report.reportID}`,
         },
     }),
     withCurrentUserPersonalDetails,

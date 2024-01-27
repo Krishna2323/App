@@ -1552,8 +1552,8 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 /** Add a policy report (workspace room) optimistically and navigate to it. */
 function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
-    const policyMembersOnyxData = buildPolicyMembersOnyxData(policyReport.policyID ?? '', policyReport.participantAccountIDs);
-    const policyMembersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyReport.policyID}` as const;
+    const policyMembersOnyxData = buildPolicyMembersOnyxData(policyReport.reportID ?? '', policyReport.participantAccountIDs);
+    const policyMembersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyReport.reportID}` as const;
 
     const optimisticMembersState: OnyxCollection<PolicyMember> = {};
     policyReport.participantAccountIDs?.forEach((accountID) => {
@@ -2157,7 +2157,7 @@ function inviteToRoom(reportID: string, policyID: string, inviteeEmailsToAccount
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
 
-    const policyMembersOnyxData = buildPolicyMembersOnyxData(policyID, inviteeAccountIDs);
+    const policyMembersOnyxData = buildPolicyMembersOnyxData(reportID, inviteeAccountIDs);
 
     const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
         (accountID): accountID is number => typeof accountID === 'number',
@@ -2211,15 +2211,45 @@ function removeFromRoom(reportID: string, policyID: string, targetAccountIDs: nu
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
-    const policyMembersRemoveOnyxData = buildPolicyMembersRemoveOnyxData(policyID, targetAccountIDs);
+    const policyMembersRemoveOnyxData = buildPolicyMembersRemoveOnyxData(reportID, targetAccountIDs);
 
-    const optimisticData: OnyxUpdate[] = [...policyMembersRemoveOnyxData.onyxOptimisticData];
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: report?.participantAccountIDs,
+                visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
+            },
+        },
+        ...policyMembersRemoveOnyxData.onyxOptimisticData,
+    ];
 
-    const failureData: OnyxUpdate[] = [...policyMembersRemoveOnyxData.onyxFailureData];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: report?.participantAccountIDs,
+                visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
+            },
+        },
+        ...policyMembersRemoveOnyxData.onyxFailureData,
+    ];
 
     // We need to add success data here since in high latency situations,
     // the OpenRoomMembersPage call has the chance of overwriting the optimistic data we set above.
-    const successData: OnyxUpdate[] = [...policyMembersRemoveOnyxData.onyxSuccessData];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: participantAccountIDsAfterRemoval,
+                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
+            },
+        },
+        ...policyMembersRemoveOnyxData.onyxSuccessData,
+    ];
 
     const parameters: RemoveFromRoomParams = {
         reportID,
