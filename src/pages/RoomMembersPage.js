@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -102,7 +103,7 @@ function RoomMembersPage(props) {
      * Remove selected users from the room
      */
     const removeUsers = () => {
-        Report.removeFromRoom(props.report.reportID, selectedMembers);
+        Report.removeFromRoom(props.report.reportID, props.report.policyID, selectedMembers);
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
@@ -206,6 +207,10 @@ function RoomMembersPage(props) {
                 }
             }
 
+            const pendingAction = lodashGet(props.policyMembers, accountID, {}).pendingAction;
+
+            console.log(pendingAction, props.policyMembers);
+
             result.push({
                 keyForList: String(accountID),
                 accountID: Number(accountID),
@@ -213,6 +218,7 @@ function RoomMembersPage(props) {
                 isDisabled: accountID === props.session.accountID,
                 text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
+                pendingAction,
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
@@ -313,6 +319,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        policyMembers: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${props.report.policyID}`,
         },
     }),
     withCurrentUserPersonalDetails,

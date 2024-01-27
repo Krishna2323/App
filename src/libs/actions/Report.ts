@@ -64,7 +64,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyMember, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -73,6 +73,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Modal from './Modal';
+import {buildPolicyMembersOnyxData, buildPolicyMembersRemoveOnyxData} from './Policy';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -1551,7 +1552,13 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 /** Add a policy report (workspace room) optimistically and navigate to it. */
 function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
+    const policyMembersOnyxData = buildPolicyMembersOnyxData(policyReport.policyID ?? '', policyReport.participantAccountIDs);
+    const policyMembersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyReport.policyID}` as const;
 
+    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
+    policyReport.participantAccountIDs?.forEach((accountID) => {
+        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+    });
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.
     // Therefore, Onyx.set is used instead of Onyx.merge.
@@ -1601,7 +1608,20 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
             key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
             value: {isLoading: false},
         },
+        ...policyMembersOnyxData.onyxSuccessData,
     ];
+
+    if (policyReport.participantAccountIDs) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: policyMembersListKey,
+            value: {
+                [policyReport.participantAccountIDs[0]]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        });
+    }
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1617,6 +1637,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
             key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
             value: {isLoading: false},
         },
+        ...policyMembersOnyxData.onyxFailureData,
     ];
 
     const parameters: AddWorkspaceRoomParams = {
@@ -2126,7 +2147,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 }
 
 /** Invites people to a room */
-function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
+function inviteToRoom(reportID: string, policyID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
     const report = currentReportData?.[reportID];
 
     if (!report) {
@@ -2135,6 +2156,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
+
+    const policyMembersOnyxData = buildPolicyMembersOnyxData(policyID, inviteeAccountIDs);
+
     const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
         (accountID): accountID is number => typeof accountID === 'number',
     );
@@ -2154,10 +2178,11 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
                 visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
             },
         },
+        ...policyMembersOnyxData.onyxOptimisticData,
         ...newPersonalDetailsOnyxData.optimisticData,
     ];
 
-    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.finallyData;
+    const successData: OnyxUpdate[] = [...policyMembersOnyxData.onyxSuccessData, ...newPersonalDetailsOnyxData.finallyData];
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2168,6 +2193,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
             },
         },
+        ...policyMembersOnyxData.onyxFailureData,
         ...newPersonalDetailsOnyxData.finallyData,
     ];
 
@@ -2180,46 +2206,20 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 }
 
 /** Removes people from a room */
-function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
+function removeFromRoom(reportID: string, policyID: string, targetAccountIDs: number[]) {
     const report = currentReportData?.[reportID];
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
+    const policyMembersRemoveOnyxData = buildPolicyMembersRemoveOnyxData(policyID, targetAccountIDs);
 
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participantAccountIDs: participantAccountIDsAfterRemoval,
-                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
-            },
-        },
-    ];
+    const optimisticData: OnyxUpdate[] = [...policyMembersRemoveOnyxData.onyxOptimisticData];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participantAccountIDs: report?.participantAccountIDs,
-                visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
-            },
-        },
-    ];
+    const failureData: OnyxUpdate[] = [...policyMembersRemoveOnyxData.onyxFailureData];
 
     // We need to add success data here since in high latency situations,
     // the OpenRoomMembersPage call has the chance of overwriting the optimistic data we set above.
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participantAccountIDs: participantAccountIDsAfterRemoval,
-                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
-            },
-        },
-    ];
+    const successData: OnyxUpdate[] = [...policyMembersRemoveOnyxData.onyxSuccessData];
 
     const parameters: RemoveFromRoomParams = {
         reportID,

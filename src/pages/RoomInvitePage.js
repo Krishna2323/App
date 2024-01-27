@@ -211,9 +211,9 @@ function RoomInvitePage(props) {
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
-        Report.inviteToRoom(props.report.reportID, invitedEmailsToAccountIDs);
+        Report.inviteToRoom(props.report.reportID, props.report.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(backRoute);
-    }, [selectedOptions, backRoute, props.report.reportID, validate]);
+    }, [selectedOptions, backRoute, props.report.reportID, validate, props.report.policyID]);
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();

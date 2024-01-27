@@ -46,6 +46,12 @@ type AnnounceRoomMembersOnyxData = {
     onyxFailureData: OnyxUpdate[];
 };
 
+type PolicyMembersOnyxData = {
+    onyxSuccessData: OnyxUpdate[];
+    onyxOptimisticData: OnyxUpdate[];
+    onyxFailureData: OnyxUpdate[];
+};
+
 type ReportCreationData = Record<
     string,
     {
@@ -387,6 +393,50 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
     return announceRoomMembers;
 }
 
+function buildPolicyMembersRemoveOnyxData(policyID: string, accountIDs?: number[]): PolicyMembersOnyxData {
+    const policyMembersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
+
+    const policyMembersOnyxData: PolicyMembersOnyxData = {
+        onyxSuccessData: [],
+        onyxOptimisticData: [],
+        onyxFailureData: [],
+    };
+
+    if (!accountIDs) {
+        return policyMembersOnyxData;
+    }
+
+    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
+    const successMembersState: OnyxCollection<PolicyMember> = {};
+    const failureMembersState: OnyxCollection<PolicyMember> = {};
+
+    accountIDs.forEach((accountID) => {
+        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        successMembersState[accountID] = null;
+        failureMembersState[accountID] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
+    });
+
+    policyMembersOnyxData.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: policyMembersListKey,
+        // Convert to object with each key containing {pendingAction: ‘add’}
+        value: optimisticMembersState,
+    });
+
+    policyMembersOnyxData.onyxSuccessData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: policyMembersListKey,
+        value: successMembersState,
+    });
+
+    policyMembersOnyxData.onyxFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: policyMembersListKey,
+        value: failureMembersState,
+    });
+    return policyMembersOnyxData;
+}
+
 /**
  * Remove the passed members from the policy employeeList
  */
@@ -404,23 +454,9 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
-    const successMembersState: OnyxCollection<PolicyMember> = {};
-    const failureMembersState: OnyxCollection<PolicyMember> = {};
-    accountIDs.forEach((accountID) => {
-        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
-        successMembersState[accountID] = null;
-        failureMembersState[accountID] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
-    });
+    const onyxData = buildPolicyMembersRemoveOnyxData(policyID, accountIDs);
 
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: optimisticMembersState,
-        },
-        ...announceRoomMembers.onyxOptimisticData,
-    ];
+    const optimisticData: OnyxUpdate[] = [...onyxData.onyxOptimisticData, ...announceRoomMembers.onyxOptimisticData];
 
     workspaceChats.forEach((report) => {
         optimisticData.push({
@@ -467,23 +503,10 @@ function removeMembers(accountIDs: number[], policyID: string) {
         }
     }
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: successMembersState,
-        },
-    ];
+    const successData: OnyxUpdate[] = onyxData.onyxSuccessData;
 
     const filteredWorkspaceChats = workspaceChats.filter((report): report is Report => report !== null);
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: failureMembersState,
-        },
-        ...announceRoomMembers.onyxFailureData,
-    ];
+    const failureData: OnyxUpdate[] = [...onyxData.onyxFailureData, ...announceRoomMembers.onyxFailureData];
 
     filteredWorkspaceChats.forEach(({reportID, stateNum, statusNum, hasDraft, oldPolicyName = null}) => {
         failureData.push({
@@ -604,11 +627,69 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: R
     return workspaceMembersChats;
 }
 
+function buildPolicyMembersOnyxData(policyID: string, accountIDs?: number[]): PolicyMembersOnyxData {
+    const policyMembersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
+
+    const policyMembersOnyxData: PolicyMembersOnyxData = {
+        onyxSuccessData: [],
+        onyxOptimisticData: [],
+        onyxFailureData: [],
+    };
+
+    if (!accountIDs) {
+        return policyMembersOnyxData;
+    }
+
+    const newAccountIDs = Object.values(accountIDs);
+
+    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
+    const failureMembersState: OnyxCollection<PolicyMember> = {};
+    newAccountIDs.forEach((accountID) => {
+        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        failureMembersState[accountID] = {
+            errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
+        };
+    });
+
+    policyMembersOnyxData.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: policyMembersListKey,
+        // Convert to object with each key containing {pendingAction: ‘add’}
+        value: optimisticMembersState,
+    });
+
+    policyMembersOnyxData.onyxSuccessData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: policyMembersListKey,
+        // Convert to object with each key clearing pendingAction, when it is an existing account.
+        // Remove the object, when it is a newly created account.
+        value: newAccountIDs.reduce((accountIDsWithClearedPendingAction, accountID) => {
+            let value = null;
+            const accountAlreadyExists = !isEmptyObject(allPersonalDetails?.[accountID]);
+
+            if (accountAlreadyExists) {
+                value = {pendingAction: null, errors: null};
+            }
+
+            return {...accountIDsWithClearedPendingAction, [accountID]: value};
+        }, {}),
+    });
+
+    policyMembersOnyxData.onyxFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: policyMembersListKey,
+        // Convert to object with each key containing the error. We don’t
+        // need to remove the members since that is handled by onClose of OfflineWithFeedback.
+        value: failureMembersState,
+    });
+
+    return policyMembersOnyxData;
+}
+
 /**
  * Adds members to the specified workspace/policyID
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>, welcomeNote: string, policyID: string) {
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
@@ -618,63 +699,22 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
 
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
-
-    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
-    const failureMembersState: OnyxCollection<PolicyMember> = {};
-    accountIDs.forEach((accountID) => {
-        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-        failureMembersState[accountID] = {
-            errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
-        };
-    });
+    const policyMembersOnyxData = buildPolicyMembersOnyxData(policyID, accountIDs);
 
     const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-
-            // Convert to object with each key containing {pendingAction: ‘add’}
-            value: optimisticMembersState,
-        },
         ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
         ...announceRoomMembers.onyxOptimisticData,
+        ...policyMembersOnyxData.onyxOptimisticData,
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-
-            // Convert to object with each key clearing pendingAction, when it is an existing account.
-            // Remove the object, when it is a newly created account.
-            value: accountIDs.reduce((accountIDsWithClearedPendingAction, accountID) => {
-                let value = null;
-                const accountAlreadyExists = !isEmptyObject(allPersonalDetails?.[accountID]);
-
-                if (accountAlreadyExists) {
-                    value = {pendingAction: null, errors: null};
-                }
-
-                return {...accountIDsWithClearedPendingAction, [accountID]: value};
-            }, {}),
-        },
-        ...newPersonalDetailsOnyxData.finallyData,
-        ...membersChats.onyxSuccessData,
-    ];
+    const successData: OnyxUpdate[] = [...newPersonalDetailsOnyxData.finallyData, ...membersChats.onyxSuccessData, ...policyMembersOnyxData.onyxSuccessData];
 
     const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-
-            // Convert to object with each key containing the error. We don’t
-            // need to remove the members since that is handled by onClose of OfflineWithFeedback.
-            value: failureMembersState,
-        },
         ...newPersonalDetailsOnyxData.finallyData,
         ...membersChats.onyxFailureData,
         ...announceRoomMembers.onyxFailureData,
+        ...policyMembersOnyxData.onyxFailureData,
     ];
 
     const params: AddMembersToWorkspaceParams = {
@@ -2029,4 +2069,6 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
+    buildPolicyMembersOnyxData,
+    buildPolicyMembersRemoveOnyxData,
 };
