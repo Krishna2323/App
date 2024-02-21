@@ -351,14 +351,14 @@ function BaseSelectionList<TItem extends ListItem>(
     const prevTextInputValue = usePrevious(textInputValue);
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
-        if (prevTextInputValue === textInputValue || flattenedSections.allOptions.length === 0) {
+        if ((prevTextInputValue === textInputValue || flattenedSections.allOptions.length === 0) && !flattenedSections.selectedOptions.length) {
             return;
         }
         // Remove the focus if the search input is empty else focus on the first non disabled item
-        const newSelectedIndex = textInputValue === '' ? -1 : 0;
+        const newSelectedIndex = textInputValue === '' || flattenedSections.selectedOptions.length ? -1 : 0;
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
-    }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
+    }, [canSelectMultiple, flattenedSections.allOptions.length, flattenedSections.selectedOptions, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
