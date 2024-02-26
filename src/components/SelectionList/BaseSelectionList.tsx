@@ -359,7 +359,9 @@ function BaseSelectionList<TItem extends ListItem>(
         }
         // Remove the focus if the search input is empty else focus on the first non disabled item
         const newSelectedIndex = textInputValue === '' || flattenedSections.selectedOptions.length !== prevSelectedOptionsLength ? -1 : 0;
-        const newScrollIndex = textInputValue !== '' || flattenedSections.selectedOptions.length > prevSelectedOptionsLength ? 0 : -1;
+
+        // Scroll to top when new option is selected
+        const newScrollIndex = flattenedSections.selectedOptions.length > prevSelectedOptionsLength ? 0 : -1;
 
         updateAndScrollToFocusedIndex(newSelectedIndex, newScrollIndex);
     }, [
