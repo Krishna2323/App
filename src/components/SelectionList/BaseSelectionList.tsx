@@ -323,9 +323,9 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
-        (newFocusedIndex: number, scrollIndex?: number) => {
+        (newFocusedIndex: number) => {
             setFocusedIndex(newFocusedIndex);
-            scrollToIndex(scrollIndex ?? newFocusedIndex, true);
+            scrollToIndex(newFocusedIndex, true);
         },
         [scrollToIndex],
     );
@@ -360,10 +360,7 @@ function BaseSelectionList<TItem extends ListItem>(
         // Remove the focus if the search input is empty else focus on the first non disabled item
         const newSelectedIndex = textInputValue === '' || flattenedSections.selectedOptions.length !== prevSelectedOptionsLength ? -1 : 0;
 
-        // Scroll to top when new option is selected
-        const newScrollIndex = flattenedSections.selectedOptions.length > prevSelectedOptionsLength ? 0 : newSelectedIndex;
-
-        updateAndScrollToFocusedIndex(newSelectedIndex, newScrollIndex);
+        updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [
         canSelectMultiple,
         flattenedSections.allOptions.length,
