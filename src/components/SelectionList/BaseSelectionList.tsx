@@ -361,7 +361,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const newSelectedIndex = textInputValue === '' || flattenedSections.selectedOptions.length !== prevSelectedOptionsLength ? -1 : 0;
 
         // Scroll to top when new option is selected
-        const newScrollIndex = flattenedSections.selectedOptions.length > prevSelectedOptionsLength ? 0 : -1;
+        const newScrollIndex = flattenedSections.selectedOptions.length > prevSelectedOptionsLength ? 0 : newSelectedIndex;
 
         updateAndScrollToFocusedIndex(newSelectedIndex, newScrollIndex);
     }, [
