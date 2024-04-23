@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
+import {isEmpty} from 'lodash';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
 import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
@@ -9,6 +10,7 @@ import type {PickerStyle} from 'react-native-picker-select';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
+import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -4286,6 +4288,7 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
+            transform: !isEmpty(Browser.getBrowser()) && !getIsSmallScreenWidth() ? 'translateX(5%)' : 'none',
         },
 
         onboardingVideoPlayer: {
