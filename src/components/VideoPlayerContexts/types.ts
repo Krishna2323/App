@@ -29,6 +29,7 @@ type VolumeContext = {
 type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
+    setUrl: React.Dispatch<React.SetStateAction<string>>;
 };
 
 type FullScreenContext = {

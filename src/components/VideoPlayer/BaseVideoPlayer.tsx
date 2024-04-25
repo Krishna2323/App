@@ -374,6 +374,7 @@ function BaseVideoPlayer({
                 isPopoverVisible={isPopoverVisible}
                 hidePopover={hidePopoverMenu}
                 anchorPosition={popoverAnchorPosition}
+                url={url}
             />
         </>
     );

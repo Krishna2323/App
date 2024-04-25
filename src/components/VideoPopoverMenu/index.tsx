@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
@@ -14,6 +14,8 @@ type VideoPopoverMenuProps = {
 
     /** The horizontal and vertical anchors points for the popover.  */
     anchorPosition?: AnchorPosition;
+
+    url: string;
 };
 
 function VideoPopoverMenu({
@@ -23,9 +25,17 @@ function VideoPopoverMenu({
         horizontal: 0,
         vertical: 0,
     },
+    url,
 }: VideoPopoverMenuProps) {
-    const {menuItems} = useVideoPopoverMenuContext();
+    const {menuItems, setUrl} = useVideoPopoverMenuContext();
     const videoPlayerMenuRef = useRef<View | HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!isPopoverVisible) {
+            return;
+        }
+        setUrl(url);
+    }, [isPopoverVisible, url, setUrl]);
 
     return (
         <PopoverMenu

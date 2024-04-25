@@ -13,11 +13,12 @@ import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const {currentVideoPlayerRef, currentlyPlayingURL} = usePlaybackContext();
+    const {currentVideoPlayerRef} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
-    const isLocalFile = currentlyPlayingURL && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => currentlyPlayingURL.startsWith(prefix));
+    const [url, setUrl] = useState('');
+    const isLocalFile = url && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
 
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
@@ -28,12 +29,12 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     );
 
     const downloadAttachment = useCallback(() => {
-        if (currentlyPlayingURL === null) {
+        if (url === null) {
             return;
         }
-        const sourceURI = addEncryptedAuthTokenToURL(currentlyPlayingURL);
+        const sourceURI = addEncryptedAuthTokenToURL(url);
         fileDownload(sourceURI);
-    }, [currentlyPlayingURL]);
+    }, [url]);
 
     const menuItems = useMemo(() => {
         const items: PopoverMenuItem[] = [];
@@ -63,7 +64,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         return items;
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
-    const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);
+    const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed, setUrl}), [menuItems, updatePlaybackSpeed, setUrl]);
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
