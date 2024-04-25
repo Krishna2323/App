@@ -115,6 +115,7 @@ function ReportActionItemMessageEdit(
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
+    const isDeleteModalVisible = useRef(false);
 
     useEffect(() => {
         const parser = new ExpensiMark();
@@ -296,6 +297,7 @@ function ReportActionItemMessageEdit(
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
+        isDeleteModalVisible.current = false;
         Report.deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
@@ -326,8 +328,12 @@ function ReportActionItemMessageEdit(
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
+            isDeleteModalVisible.current = true;
             textInputRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
+            ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => {
+                isDeleteModalVisible.current = false;
+                focusEditAfterCancelDelete(textInputRef.current);
+            });
             return;
         }
         Report.editReportComment(reportID, action, trimmedNewDraft);
@@ -450,7 +456,7 @@ function ReportActionItemMessageEdit(
                                 setIsFocused(false);
                                 // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
+                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || isDeleteModalVisible.current) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
