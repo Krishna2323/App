@@ -124,6 +124,7 @@ type Category = {
     name: string;
     enabled: boolean;
     isSelected?: boolean;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type Tax = {
@@ -954,6 +955,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
                 const categoryObject: Category = {
                     name,
                     enabled: categories[name]?.enabled ?? false,
+                    pendingAction: categories[name]?.pendingAction,
                 };
 
                 acc.push(categoryObject);
@@ -1002,7 +1004,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 keyForList: option.name,
                 searchText: option.name,
                 tooltipText: option.name,
-                isDisabled: !option.enabled,
+                isDisabled: !option.enabled || option.pendingAction === 'delete',
                 isSelected: !!option.isSelected,
             });
 
@@ -1023,7 +1025,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 keyForList: searchText,
                 searchText,
                 tooltipText: optionName,
-                isDisabled: isChild ? !option.enabled : true,
+                isDisabled: isChild ? !option.enabled || option.pendingAction === 'delete' : true,
                 isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
             });
         });

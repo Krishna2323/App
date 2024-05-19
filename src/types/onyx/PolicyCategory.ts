@@ -28,6 +28,9 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** A list of errors keyed by microtime */
     errors?: OnyxCommon.Errors | null;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
 }>;
 
 type PolicyCategories = Record<string, PolicyCategory>;

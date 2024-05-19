@@ -231,8 +231,9 @@ function MoneyRequestConfirmationList({
     const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
+    const {canUseViolations} = usePermissions(iouType);
     const {isOffline} = useNetwork();
+    const canUseP2PDistanceRequests = true;
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
