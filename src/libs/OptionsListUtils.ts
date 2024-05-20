@@ -78,6 +78,7 @@ type OptionTree = {
     tooltipText: string;
     isDisabled: boolean;
     isSelected: boolean;
+    pendingAction?: OnyxCommon.PendingAction;
 } & Option;
 
 type PayeePersonalDetails = {
@@ -1006,6 +1007,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 tooltipText: option.name,
                 isDisabled: !option.enabled || option.pendingAction === 'delete',
                 isSelected: !!option.isSelected,
+                pendingAction: option.pendingAction,
             });
 
             return;
@@ -1027,6 +1029,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled || option.pendingAction === 'delete' : true,
                 isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
+                pendingAction: isChild ? option.pendingAction : null,
             });
         });
     });
