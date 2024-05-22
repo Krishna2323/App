@@ -1,8 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import DistanceRatePicker from '@components/DistanceRatePicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,9 +41,10 @@ function IOURequestStepDistanceRate({
     },
     transaction,
     rates,
+    report,
 }: IOURequestStepDistanceRateProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate} = useLocalize();
 
     const lastSelectedRateID = TransactionUtils.getRateID(transaction) ?? '';
 
@@ -52,21 +52,7 @@ function IOURequestStepDistanceRate({
         Navigation.goBack(backTo);
     };
 
-    const sections = Object.values(rates).map((rate) => {
-        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
-
-        return {
-            text: rate.name ?? rateForDisplay,
-            alternateText: rate.name ? rateForDisplay : '',
-            keyForList: rate.customUnitRateID,
-            value: rate.customUnitRateID,
-            isSelected: lastSelectedRateID ? lastSelectedRateID === rate.customUnitRateID : Boolean(rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE),
-        };
-    });
-
     const unit = (Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
-
-    const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
         IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');
@@ -82,11 +68,10 @@ function IOURequestStepDistanceRate({
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
 
-            <SelectionList
-                sections={[{data: sections}]}
-                ListItem={RadioListItem}
-                onSelectRow={({value}) => selectDistanceRate(value ?? '')}
-                initiallyFocusedOptionKey={initiallyFocusedOption}
+            <DistanceRatePicker
+                onSubmit={({keyForList}) => selectDistanceRate(keyForList ?? '')}
+                policyID={report?.policyID ?? policy?.id ?? ''}
+                selectedRateID={lastSelectedRateID}
             />
         </StepScreenWrapper>
     );

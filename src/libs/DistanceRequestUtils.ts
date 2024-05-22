@@ -18,6 +18,8 @@ type MileageRate = {
     currency?: string;
     unit: Unit;
     name?: string;
+    enabled?: boolean;
+    alternateText?: string;
 };
 
 let lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates> = {};
@@ -205,10 +207,41 @@ function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate>
             unit: distanceUnit.attributes.unit,
             name: rate.name,
             customUnitRateID: rate.customUnitRateID,
+            enabled: rate.enabled,
         };
     });
 
     return mileageRates;
+}
+
+/**
+ * Retrieves the mileage rates for given policy.
+ *
+ * @param policy - The policy from which to extract the mileage rates.
+ *
+ * @returns An array of mileage rates or an empty array if not found.
+ */
+function getMileageRatesArray(policy: OnyxEntry<Policy>): MileageRate[] {
+    if (!policy || !policy?.customUnits) {
+        return [];
+    }
+
+    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    if (!distanceUnit?.rates) {
+        return [];
+    }
+
+    const arr = Object.entries(distanceUnit.rates).map(([rateID, rate]) => ({
+        rateID,
+        rate: rate.rate,
+        currency: rate.currency,
+        unit: distanceUnit.attributes.unit,
+        name: rate.name,
+        customUnitRateID: rate.customUnitRateID,
+        enabled: rate.enabled,
+    }));
+
+    return arr;
 }
 
 /**
@@ -275,6 +308,7 @@ export default {
     getDistanceForDisplay,
     getRateForP2P,
     getCustomUnitRateID,
+    getMileageRatesArray,
     convertToDistanceInMeters,
 };
 

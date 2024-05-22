@@ -38,9 +38,12 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
+import type {MileageRate} from './DistanceRequestUtils';
+import DistanceRequestUtils from './DistanceRequestUtils';
 import * as ErrorUtils from './ErrorUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
+import * as LocaleDigitUtils from './LocaleDigitUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
@@ -115,6 +118,22 @@ type TaxSection = {
     data: TaxRatesOption[];
 };
 
+type DistanceRateOption = {
+    text?: string;
+    alternateText?: string;
+    searchText?: string;
+    tooltipText?: string;
+    isDisabled?: boolean;
+    keyForList?: string;
+    isSelected?: boolean;
+};
+
+type DistanceRateSection = {
+    title: string | undefined;
+    shouldShow: boolean;
+    data: DistanceRateOption[];
+};
+
 type CategoryTreeSection = CategorySectionBase & {
     data: OptionTree[];
     indexOffset?: number;
@@ -161,6 +180,8 @@ type GetOptionsConfig = {
     includeTags?: boolean;
     tags?: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     recentlyUsedTags?: string[];
+    includeDistanceRates?: boolean;
+    distanceRates?: MileageRate[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
     includeTaxRates?: boolean;
@@ -208,6 +229,7 @@ type Options = {
     tagOptions: CategorySection[];
     taxRatesOptions: CategorySection[];
     policyReportFieldOptions?: CategorySection[] | null;
+    distanceRateOptions: DistanceRateSection[] | null;
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
@@ -982,6 +1004,14 @@ function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<Po
 }
 
 /**
+ * Sorts tags alphabetically by name.
+ */
+function sortDistanceRate(distanceRates: MileageRate[]) {
+    // Use lodash's sortBy to ensure consistency with oldDot.
+    return lodashSortBy(distanceRates, 'name', localeCompare);
+}
+
+/**
  * Builds the options for the category tree hierarchy via indents
  *
  * @param options - an initial object array
@@ -1272,6 +1302,118 @@ function getTagListSections(
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
+    });
+
+    return tagSections;
+}
+
+/**
+ * Transforms the provided tags into option objects.
+ *
+ * @param tags - an initial tag array
+ */
+function getDistanceRateOptions(rates: MileageRate[], selectedOptions?: MileageRate[]): MileageRate[] {
+    return rates.map((rate) => {
+        // This is to remove unnecessary escaping backslash in rate name sent from backend.
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(
+            rate.unit,
+            rate.rate,
+            rate.currency,
+            Localize.translateLocal,
+            LocaleDigitUtils.toLocaleDigit.bind(null, CONST.LOCALES.DEFAULT),
+        );
+        return {
+            keyForList: rate.name,
+            text: rate.name ?? rateForDisplay,
+            alternateText: rate.name ? rateForDisplay : '',
+            searchText: rateForDisplay ?? rate.name,
+            isDisabled: !rate.enabled,
+            isSelected: selectedOptions?.some((selectedRate) => selectedRate.name === rate.name),
+            unit: rate.unit,
+        };
+    });
+}
+
+/**
+ * Build the section list for tags
+ */
+function getDistanceRateListSections(distanceRates: MileageRate[], selectedOptions: MileageRate[], searchInputValue: string) {
+    const tagSections = [];
+    const sortedTags = sortDistanceRate(distanceRates) as MileageRate[];
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    const enabledTagsNames = enabledTags.map((tag) => tag.name);
+    const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
+    const selectedTagsWithDisabledState: MileageRate[] = [];
+    const numberOfTags = enabledTags.length;
+
+    selectedOptions.forEach((rate) => {
+        if (enabledTagsNames.includes(rate.name)) {
+            selectedTagsWithDisabledState.push({...rate, enabled: true});
+            return;
+        }
+        selectedTagsWithDisabledState.push({...rate, enabled: false});
+    });
+
+    // If all tags are disabled but there's a previously selected tag, show only the selected tag
+    if (numberOfTags === 0 && selectedOptions.length > 0) {
+        tagSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            data: getDistanceRateOptions(selectedTagsWithDisabledState, selectedOptions),
+        });
+
+        return tagSections;
+    }
+
+    if (searchInputValue) {
+        const enabledSearchTags = enabledTagsWithoutSelectedOptions.filter((rate) => {
+            const rateForSearch =
+                rate.name?.toLowerCase() ??
+                DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, rate.currency, Localize.translateLocal, LocaleDigitUtils.toLocaleDigit.bind(null, CONST.LOCALES.DEFAULT));
+
+            return rateForSearch.includes(searchInputValue.toLowerCase());
+        });
+        const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => tag.name?.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const tagsForSearch = [...selectedSearchTags, ...enabledSearchTags];
+
+        tagSections.push({
+            // "Search" section
+            title: '',
+            shouldShow: true,
+            data: getDistanceRateOptions(tagsForSearch, selectedOptions),
+        });
+
+        return tagSections;
+    }
+
+    if (numberOfTags < CONST.TAG_LIST_THRESHOLD) {
+        tagSections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            data: getDistanceRateOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions),
+        });
+
+        return tagSections;
+    }
+
+    console.log(selectedOptions);
+    if (selectedOptions.length) {
+        tagSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: true,
+            data: getDistanceRateOptions(selectedTagsWithDisabledState, selectedOptions),
+        });
+    }
+
+    tagSections.push({
+        // "All" section when items amount more than the threshold
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        data: getDistanceRateOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
 
     return tagSections;
@@ -1666,6 +1808,8 @@ function getOptions(
         categories = {},
         recentlyUsedCategories = [],
         includeTags = false,
+        includeDistanceRates = false,
+        distanceRates = [],
         tags = {},
         recentlyUsedTags = [],
         canInviteUser = true,
@@ -1691,6 +1835,7 @@ function getOptions(
             categoryOptions,
             tagOptions: [],
             taxRatesOptions: [],
+            distanceRateOptions: [],
         };
     }
 
@@ -1705,6 +1850,7 @@ function getOptions(
             categoryOptions: [],
             tagOptions,
             taxRatesOptions: [],
+            distanceRateOptions: [],
         };
     }
 
@@ -1719,6 +1865,22 @@ function getOptions(
             categoryOptions: [],
             tagOptions: [],
             taxRatesOptions,
+            distanceRateOptions: [],
+        };
+    }
+
+    if (includeDistanceRates) {
+        const distanceRatesOptions = getDistanceRateListSections(distanceRates, selectedOptions as MileageRate[], searchInputValue);
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
+            distanceRateOptions: distanceRatesOptions,
         };
     }
 
@@ -1733,6 +1895,7 @@ function getOptions(
             tagOptions: [],
             taxRatesOptions: [],
             policyReportFieldOptions: transformedPolicyReportFieldOptions,
+            distanceRateOptions: [],
         };
     }
 
@@ -1973,6 +2136,7 @@ function getOptions(
         categoryOptions: [],
         tagOptions: [],
         taxRatesOptions: [],
+        distanceRateOptions: [],
     };
 }
 
@@ -2064,6 +2228,8 @@ function getFilteredOptions(
     includeSelectedOptions = false,
     includeTaxRates = false,
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
+    includeDistanceRates = false,
+    distanceRates: MileageRate[] = [],
     includeSelfDM = false,
     includePolicyReportFieldOptions = false,
     policyReportFieldOptions: string[] = [],
@@ -2088,6 +2254,8 @@ function getFilteredOptions(
             recentlyUsedCategories,
             includeTags,
             tags,
+            includeDistanceRates,
+            distanceRates,
             recentlyUsedTags,
             canInviteUser,
             includeSelectedOptions,
@@ -2390,6 +2558,7 @@ function filterOptions(options: Options, searchInputValue: string, betas: OnyxEn
         categoryOptions: [],
         tagOptions: [],
         taxRatesOptions: [],
+        distanceRateOptions: [],
     };
 }
 

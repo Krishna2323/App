@@ -88,6 +88,8 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             undefined,
             undefined,
             undefined,
+            [],
+            undefined,
             true,
             validFieldOptions,
             recentlyUsedOptions,
