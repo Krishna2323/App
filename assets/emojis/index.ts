@@ -1,10 +1,13 @@
 import type {Locale} from '@src/types/onyx';
 import emojis from './common';
+import any from './getUpdatedEmojis';
 import type {Emoji, EmojisList} from './types';
 
 type EmojiTable = Record<string, Emoji>;
 
 type LocaleEmojis = Partial<Record<Locale, EmojisList>>;
+
+console.log(any);
 
 const emojiNameTable = emojis.reduce<EmojiTable>((prev, cur) => {
     const newValue = prev;
