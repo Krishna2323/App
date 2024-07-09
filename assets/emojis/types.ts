@@ -3,7 +3,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type Emoji = {
     code: string;
     name: string;
-    types?: readonly string[];
+    types?: string[];
+    keywords?: string[];
+    order?: number;
 };
 
 type HeaderEmoji = {

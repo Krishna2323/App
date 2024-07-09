@@ -218,20 +218,20 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
-        // Frequently used emojis in the old format will have name/types/code stored with them
-        // The back-end may not always have both, so we'll need to fill them in.
-        if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
-            return findEmojiByName(frequentlyUsedEmoji.name);
-        }
-        if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
-            return findEmojiByCode(frequentlyUsedEmoji.code);
-        }
+    // const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
+    //     // Frequently used emojis in the old format will have name/types/code stored with them
+    //     // The back-end may not always have both, so we'll need to fill them in.
+    //     if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+    //         return findEmojiByName(frequentlyUsedEmoji.name);
+    //     }
+    //     if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+    //         return findEmojiByCode(frequentlyUsedEmoji.code);
+    //     }
 
-        return frequentlyUsedEmoji;
-    });
+    //     return frequentlyUsedEmoji;
+    // });
 
-    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
+    const mergedEmojis = [...emojis];
     return addSpacesToEmojiCategories(mergedEmojis);
 }
 
