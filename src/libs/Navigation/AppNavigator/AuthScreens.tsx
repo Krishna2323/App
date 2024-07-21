@@ -11,7 +11,6 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isOnboardingFlowCompleted} from '@libs/actions/Welcome';
 import {READ_COMMANDS} from '@libs/API/types';
 import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import HttpUtils from '@libs/HttpUtils';
@@ -234,7 +233,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
-    console.log('hasCompletedGuidedSetupFlow', hasCompletedGuidedSetupFlow);
     const {translate} = useLocalize();
 
     useEffect(() => {

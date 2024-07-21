@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';

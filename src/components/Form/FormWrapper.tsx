@@ -74,8 +74,6 @@ function FormWrapper({
     const formContentRef = useRef<View>(null);
     const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) || additionalErrorMessage : additionalErrorMessage), [formState, additionalErrorMessage]);
 
-    console.log(errorMessage, additionalErrorMessage);
-
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};
         const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => Object.keys(errorFields).includes(key));
