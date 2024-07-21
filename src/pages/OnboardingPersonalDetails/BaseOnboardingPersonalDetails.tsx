@@ -1,9 +1,10 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -96,6 +97,7 @@ function BaseOnboardingPersonalDetails({
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+        Welcome.setOnboardingErrorMessage('');
         if (!shouldValidateOnChange) {
             setShouldValidateOnChange(true);
         }
@@ -130,12 +132,17 @@ function BaseOnboardingPersonalDetails({
 
     const PersonalDetailsFooterInstance = <OfflineIndicator />;
 
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
+
     return (
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={75}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => {
+                    Navigation.goBack();
+                    Welcome.setOnboardingErrorMessage('');
+                }}
             />
             <KeyboardAvoidingView
                 style={[styles.flex1, styles.dFlex]}
@@ -153,6 +160,7 @@ function BaseOnboardingPersonalDetails({
                     shouldValidateOnBlur={false}
                     shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}
+                    additionalErrorMessage={onboardingErrorMessage}
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
@@ -170,6 +178,7 @@ function BaseOnboardingPersonalDetails({
                             shouldSaveDraft
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
+                            onChangeText={() => Welcome.setOnboardingErrorMessage('')}
                         />
                     </View>
                     <View>
@@ -183,6 +192,7 @@ function BaseOnboardingPersonalDetails({
                             defaultValue={currentUserPersonalDetails?.lastName}
                             shouldSaveDraft
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                            onChangeText={() => Welcome.setOnboardingErrorMessage('')}
                             spellCheck={false}
                         />
                     </View>

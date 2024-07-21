@@ -80,6 +80,7 @@ function FormAlertWithSubmitButton({
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
 
+    // console.log(message);
     return (
         <FormAlertWrapper
             containerStyles={[styles.justifyContentEnd, containerStyles]}

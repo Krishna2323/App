@@ -76,6 +76,8 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
 
         /** Whether button is disabled */
         isSubmitDisabled?: boolean;
+
+        additionalErrorMessage?: string;
     };
 
 function FormProvider(

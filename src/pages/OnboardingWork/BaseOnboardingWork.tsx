@@ -1,6 +1,6 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -32,8 +32,12 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
 
+    const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
+            if (!shouldValidateOnChange) {
+                setShouldValidateOnChange(true);
+            }
             if (!onboardingPurposeSelected) {
                 return;
             }
@@ -48,7 +52,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
 
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
         },
-        [onboardingPurposeSelected, onboardingPolicyID],
+        [onboardingPurposeSelected, onboardingPolicyID, shouldValidateOnChange],
     );
 
     const validate = (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -68,12 +72,17 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
 
     const WorkFooterInstance = <OfflineIndicator />;
 
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
+
     return (
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => {
+                    Navigation.goBack();
+                    Welcome.setOnboardingErrorMessage('');
+                }}
             />
             <KeyboardAvoidingView
                 style={[styles.flex1, styles.dFlex]}
@@ -88,9 +97,10 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                     submitButtonText={translate('common.continue')}
                     enabledWhenOffline
                     submitFlexEnabled
-                    shouldValidateOnBlur
-                    shouldValidateOnChange
+                    shouldValidateOnBlur={false}
+                    shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}
+                    additionalErrorMessage={onboardingErrorMessage}
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
@@ -106,6 +116,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                             shouldSaveDraft
                             maxLength={CONST.TITLE_CHARACTER_LIMIT}
                             spellCheck={false}
+                            onChangeText={() => Welcome.setOnboardingErrorMessage('')}
                             autoFocus
                         />
                     </View>

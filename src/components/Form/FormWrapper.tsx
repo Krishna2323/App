@@ -43,12 +43,15 @@ type FormWrapperProps = ChildrenProps &
 
         /** Callback to submit the form */
         onSubmit: () => void;
+
+        additionalErrorMessage?: string;
     };
 
 function FormWrapper({
     onSubmit,
     children,
     formState,
+    additionalErrorMessage,
     errors,
     inputRefs,
     submitButtonText,
@@ -69,7 +72,9 @@ function FormWrapper({
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
-    const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
+    const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) || additionalErrorMessage : additionalErrorMessage), [formState, additionalErrorMessage]);
+
+    console.log(errorMessage, additionalErrorMessage);
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};

@@ -118,9 +118,13 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
 
+    useEffect(() => {
+        Welcome.setOnboardingErrorMessage('');
+    }, []);
     if (isLoadingOnyxValue(onboardingPurposeSelectedResult, onboardingErrorMessageResult)) {
         return null;
     }
+
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (

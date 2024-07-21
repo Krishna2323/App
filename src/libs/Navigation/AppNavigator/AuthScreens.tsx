@@ -1,16 +1,19 @@
 import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isOnboardingFlowCompleted} from '@libs/actions/Welcome';
 import {READ_COMMANDS} from '@libs/API/types';
+import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -37,6 +40,7 @@ import * as Session from '@userActions/Session';
 import toggleTestToolsModal from '@userActions/TestTool';
 import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
+import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -226,6 +230,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         isInitialRender.current = false;
     }
 
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasCompletedGuidedSetupFlowSelector,
+    });
+
+    console.log('hasCompletedGuidedSetupFlow', hasCompletedGuidedSetupFlow);
+    const {translate} = useLocalize();
+
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -279,6 +290,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeShortcutsOverviewShortcut = KeyboardShortcut.subscribe(
             shortcutsOverviewShortcutConfig.shortcutKey,
             () => {
+                if (!hasCompletedGuidedSetupFlow) {
+                    Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.completeFlow'));
+                    return;
+                }
                 Modal.close(() => {
                     if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
                         return;
@@ -297,6 +312,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
+                if (!hasCompletedGuidedSetupFlow) {
+                    Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.completeFlow'));
+                    return;
+                }
                 Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)));
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
@@ -307,6 +326,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
+                if (!hasCompletedGuidedSetupFlow) {
+                    Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.completeFlow'));
+                    return;
+                }
                 Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
