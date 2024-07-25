@@ -59,6 +59,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
     );
 
     useEffect(() => {
+        console.log(isTouched);
         if (!isTouched) {
             return;
         }
@@ -104,7 +105,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                             onInputChange={setValue}
                             onBlur={() => {
                                 setTimeout(() => {
-                                    if (inputRef?.current?.isFocused) {
+                                    if (inputRef?.current?.isFocused()) {
                                         return;
                                     }
                                     setIsTouched(true);
