@@ -47,6 +47,8 @@ function covertTaxNameToID(name: string) {
 const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM>) => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
 
+    console.log(values);
+
     const name = values[INPUT_IDS.NAME];
     if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
         errors[INPUT_IDS.NAME] = translateLocal('workspace.taxes.error.taxRateAlreadyExists');

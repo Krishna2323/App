@@ -19,6 +19,8 @@ type TextSelectorModalProps = {
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 
+    validate: (value?: string) => string | undefined;
+
     /** Whether to clear the input value when the modal closes */
     shouldClearOnClose?: boolean;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
@@ -36,6 +38,8 @@ type TextPickerProps = {
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
+
+    validate: (value?: string) => string | undefined;
 
     /** Text to display under the main menu item */
     furtherDetails?: string;

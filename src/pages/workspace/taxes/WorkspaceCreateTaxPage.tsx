@@ -16,6 +16,7 @@ import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxN
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -55,7 +56,7 @@ function WorkspaceCreateTaxPage({
                 return {};
             }
             return {
-                ...validateTaxName(policy, values),
+                // ...validateTaxName(policy, values),
                 ...validateTaxValue(values),
             };
         },
@@ -97,6 +98,20 @@ function WorkspaceCreateTaxPage({
                                     maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
+                                    validate={(value?: string) => {
+                                        if (!policy) {
+                                            return;
+                                        }
+                                        if (validateTaxName(policy, {[INPUT_IDS.NAME]: value ?? ''})?.[INPUT_IDS.NAME]) {
+                                            return validateTaxName(policy, {[INPUT_IDS.NAME]: value ?? ''})?.[INPUT_IDS.NAME];
+                                        }
+
+                                        if (ValidationUtils.validateInvalidCharacter(value)) {
+                                            return ValidationUtils.validateInvalidCharacter(value);
+                                        }
+
+                                        return '';
+                                    }}
                                 />
                                 <InputWrapper
                                     InputComponent={AmountPicker}

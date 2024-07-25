@@ -95,7 +95,7 @@ function FormProvider(
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
-    const {preferredLocale, translate} = useLocalize();
+    const {preferredLocale} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
@@ -115,37 +115,12 @@ function FormProvider(
 
             // Validate the input for html tags. It should supersede any other error
             Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
-                // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
-                if (!inputValue || typeof inputValue !== 'string') {
-                    return;
-                }
-                const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
-
-                // Return early if there are no HTML characters
-                if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
-                    return;
-                }
-
-                const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                let isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(inputValue));
-                // Check for any matches that the original regex (foundHtmlTagIndex) matched
-                if (matchedHtmlTags) {
-                    // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
-                    for (const htmlTag of matchedHtmlTags) {
-                        isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
-                        if (!isMatch) {
-                            break;
-                        }
-                    }
-                }
-
-                if (isMatch && leadingSpaceIndex === -1) {
+                if (!ValidationUtils.validateInvalidCharacter(inputValue)) {
                     return;
                 }
 
                 // Add a validation error here because it is a string value that contains HTML characters
-                validateErrors[inputID] = translate('common.error.invalidCharacter');
+                validateErrors[inputID] = ValidationUtils.validateInvalidCharacter(inputValue);
             });
 
             if (typeof validateErrors !== 'object') {
@@ -160,7 +135,7 @@ function FormProvider(
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate],
+        [shouldTrimValues, formID, validate, errors],
     );
 
     // When locales change from another session of the same account,
@@ -346,7 +321,7 @@ function FormProvider(
                             ...prevState,
                             [inputKey]: value,
                         };
-
+                        setTouchedInput(inputID);
                         if (shouldValidateOnChange) {
                             onValidate(newState);
                         }
@@ -358,6 +333,7 @@ function FormProvider(
                     }
                     inputProps.onValueChange?.(value, inputKey);
                 },
+                isTouched: touchedInputs.current[inputID],
             };
         },
         [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, formID, shouldValidateOnChange],

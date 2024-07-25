@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {TextSelectorModalProps} from './types';
 import usePaddingStyle from './usePaddingStyle';
 
-function TextSelectorModal({value, description = '', subtitle, onValueSelected, isVisible, onClose, shouldClearOnClose, ...rest}: TextSelectorModalProps) {
+function TextSelectorModal({value, description = '', subtitle, onValueSelected, isVisible, onClose, validate, shouldClearOnClose, ...rest}: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -26,6 +26,8 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [error, setError] = useState('');
+    const [isTouched, setIsTouched] = useState(false);
 
     const hide = useCallback(() => {
         onClose();
@@ -43,6 +45,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
             focusTimeoutRef.current = setTimeout(() => {
                 if (inputRef.current && isVisible) {
                     inputRef.current.focus();
+                    setIsTouched(false);
                     (inputRef.current as TextInputType).setSelection?.(inputValueRef.current?.length ?? 0, inputValueRef.current?.length ?? 0);
                 }
                 return () => {
@@ -54,6 +57,18 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
             }, CONST.ANIMATED_TRANSITION);
         }, [isVisible]),
     );
+
+    useEffect(() => {
+        if (!isTouched) {
+            return;
+        }
+        if (validate(currentValue)) {
+            setError(validate(currentValue) ?? '');
+            return;
+        }
+
+        setError('');
+    }, [currentValue, isTouched, validate]);
 
     return (
         <Modal
@@ -87,6 +102,15 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                             {...rest}
                             value={currentValue}
                             onInputChange={setValue}
+                            onBlur={() => {
+                                setTimeout(() => {
+                                    if (inputRef?.current?.isFocused) {
+                                        return;
+                                    }
+                                    setIsTouched(true);
+                                }, 300);
+                            }}
+                            errorText={error}
                             ref={(ref) => {
                                 if (!ref) {
                                     return;
@@ -101,6 +125,11 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                         pressOnEnter
                         text={translate('common.save')}
                         onPress={() => {
+                            if (validate(currentValue)) {
+                                setError(validate(currentValue) ?? '');
+                                return;
+                            }
+
                             Keyboard.dismiss();
                             onValueSelected?.(currentValue ?? '');
                         }}
