@@ -56,7 +56,7 @@ function WorkspaceCreateTaxPage({
                 return {};
             }
             return {
-                // ...validateTaxName(policy, values),
+                ...validateTaxName(policy, values),
                 ...validateTaxValue(values),
             };
         },

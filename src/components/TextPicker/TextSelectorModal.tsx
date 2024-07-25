@@ -127,6 +127,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                         onPress={() => {
                             if (validate(currentValue)) {
                                 setError(validate(currentValue) ?? '');
+                                setIsTouched(true);
                                 return;
                             }
 
