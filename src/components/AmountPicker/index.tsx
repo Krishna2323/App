@@ -47,6 +47,8 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
                 description={description}
                 onClose={hidePickerModal}
                 onValueSelected={updateInput}
+                onInputChange={onInputChange}
+                errorText={errorText}
             />
         </View>
     );

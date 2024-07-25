@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import Button from '@components/Button';
@@ -11,11 +11,27 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {AmountSelectorModalProps} from './types';
 
-function AmountSelectorModal({value, description = '', onValueSelected, isVisible, onClose, ...rest}: AmountSelectorModalProps) {
+function AmountSelectorModal({value, description = '', onValueSelected, onInputChange, isTouched, isVisible, onClose, ...rest}: AmountSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [currentValue, setValue] = useState(value);
+
+    const [initialValue2, setInitialValue2] = useState(value ?? '');
+    // Validate again when isTouched changes
+    useEffect(() => {
+        onInputChange?.(currentValue ?? '');
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isTouched]);
+
+    // Save the initial value for showing it on the Add rate page when user doesn't save it
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        setInitialValue2(value ?? '');
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isVisible]);
 
     return (
         <Modal
@@ -35,7 +51,10 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             >
                 <HeaderWithBackButton
                     title={description}
-                    onBackButtonPress={onClose}
+                    onBackButtonPress={() => {
+                        onInputChange?.(initialValue2);
+                        onClose();
+                    }}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mb5]}>
                     <View style={styles.flex1}>
@@ -44,7 +63,13 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                             {...rest}
                             autoFocus
                             value={currentValue}
-                            onInputChange={setValue}
+                            // onInputChange={setValue}
+                            onInputChange={(val) => {
+                                if (isTouched) {
+                                    onInputChange?.(val);
+                                }
+                                setValue(val);
+                            }}
                         />
                         <Button
                             success

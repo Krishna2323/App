@@ -97,7 +97,7 @@ function FormProvider(
 ) {
     const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
-    const touchedInputs = useRef<Record<string, boolean>>({});
+    const [touchedInputs, setTouchedInput2] = useState<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
@@ -152,7 +152,7 @@ function FormProvider(
                 throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
             }
 
-            const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => touchedInputs.current[inputID]));
+            const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => touchedInputs[inputID]));
 
             if (!lodashIsEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
@@ -160,7 +160,7 @@ function FormProvider(
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate],
+        [shouldTrimValues, formID, validate, errors, translate, touchedInputs],
     );
 
     // When locales change from another session of the same account,
@@ -185,7 +185,8 @@ function FormProvider(
     /** @param inputID - The inputID of the input being touched */
     const setTouchedInput = useCallback(
         (inputID: keyof Form) => {
-            touchedInputs.current[inputID] = true;
+            // touchedInputs.current[inputID] = true;
+            setTouchedInput2({...touchedInputs, [inputID]: true});
         },
         [touchedInputs],
     );
@@ -200,7 +201,7 @@ function FormProvider(
         const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
 
         // Touches all form inputs, so we can validate the entire form
-        Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
+        Object.keys(inputRefs.current).forEach((inputID) => setTouchedInput(inputID));
 
         // Validate form and return early if any errors are found
         if (!isEmptyObject(onValidate(trimmedStringValues))) {
@@ -213,7 +214,7 @@ function FormProvider(
         }
 
         onSubmit(trimmedStringValues);
-    }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
+    }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues, setTouchedInput]);
 
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
@@ -221,7 +222,9 @@ function FormProvider(
                 setInputValues((prevState) => {
                     const copyPrevState = {...prevState};
 
-                    touchedInputs.current[inputID] = false;
+                    // touchedInputs.current[inputID] = false;
+                    setTouchedInput2({...touchedInputs, [inputID]: false});
+
                     copyPrevState[inputID] = optionalValue[inputID as keyof FormOnyxValues] || '';
 
                     return copyPrevState;
@@ -229,7 +232,7 @@ function FormProvider(
             });
             setErrors({});
         },
-        [inputValues],
+        [inputValues, touchedInputs],
     );
     useImperativeHandle(forwardedRef, () => ({
         resetForm,
@@ -358,9 +361,10 @@ function FormProvider(
                     }
                     inputProps.onValueChange?.(value, inputKey);
                 },
+                isTouched: touchedInputs[inputID],
             };
         },
-        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, formID, shouldValidateOnChange],
+        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, formID, shouldValidateOnChange, touchedInputs],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 

@@ -13,6 +13,12 @@ type AmountSelectorModalProps = {
 
     /** Function to call when the user closes the modal */
     onClose: () => void;
+
+    /** Form Error description */
+    errorText?: string;
+
+    /** Callback to call when the input changes */
+    onInputChange?: (value: string | undefined) => void;
 } & Pick<MenuItemBaseProps, 'description'>;
 
 type AmountPickerProps = {

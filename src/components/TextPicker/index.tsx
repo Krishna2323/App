@@ -46,6 +46,8 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
                 description={description}
                 onClose={hidePickerModal}
                 onValueSelected={updateInput}
+                onInputChange={onInputChange}
+                errorText={errorText}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />

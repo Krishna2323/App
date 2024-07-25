@@ -100,6 +100,9 @@ type CustomBaseTextInputProps = {
     /** Should there be an error displayed */
     hasError?: boolean;
 
+    /** isTouched */
+    isTouched?: boolean;
+
     /** On Press handler */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
 
