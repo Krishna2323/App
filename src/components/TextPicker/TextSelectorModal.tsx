@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {TextInput as TextInputType} from 'react-native';
-import Button from '@components/Button';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -119,12 +119,10 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                             }}
                         />
                     </View>
-                    <Button
-                        success
-                        large
-                        pressOnEnter
-                        text={translate('common.save')}
-                        onPress={() => {
+
+                    <FormAlertWithSubmitButton
+                        isAlertVisible={!!error}
+                        onSubmit={() => {
                             if (validate(currentValue)) {
                                 setError(validate(currentValue) ?? '');
                                 setIsTouched(true);
@@ -134,6 +132,10 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                             Keyboard.dismiss();
                             onValueSelected?.(currentValue ?? '');
                         }}
+                        onFixTheErrorsLinkPressed={() => {
+                            inputRef.current?.focus();
+                        }}
+                        buttonText={translate('common.save')}
                     />
                 </ScrollView>
             </ScreenWrapper>
