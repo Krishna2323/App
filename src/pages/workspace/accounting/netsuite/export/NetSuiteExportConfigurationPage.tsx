@@ -31,7 +31,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
     const {canUseNetSuiteUSATax} = usePermissions();
 
-    const config = policy?.connections?.netsuite?.options.config;
+    const config = policy?.connections?.netsuite?.options?.config;
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
@@ -148,7 +148,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: config?.pendingFields?.provincialTaxPostingAccount,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT),
-            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseProvincialTaxNetSuite(selectedSubsidiary?.country),
+            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions?.syncTax || !canUseProvincialTaxNetSuite(selectedSubsidiary?.country),
         },
         {
             type: 'menuitem',
@@ -159,7 +159,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: config?.pendingFields?.taxPostingAccount,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT),
-            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country),
+            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions?.syncTax || !canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country),
         },
         {
             type: 'toggle',
