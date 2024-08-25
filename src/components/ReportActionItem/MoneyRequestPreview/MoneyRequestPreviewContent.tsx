@@ -284,7 +284,7 @@ function MoneyRequestPreviewContent({
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
         } else if ('tag' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID));
-        } else if ('description' in comparisonResult.change) {
+        } else if ('comment' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID));
         } else if ('taxCode' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID));

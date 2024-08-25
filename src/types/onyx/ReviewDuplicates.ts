@@ -1,3 +1,5 @@
+import type {Comment} from './Transaction';
+
 /**
  * Model of review duplicates request
  */
@@ -24,7 +26,10 @@ type ReviewDuplicates = {
     taxAmount: number;
 
     /** Description  which user want to keep */
-    description: string;
+    comment: Comment;
+
+    /** Description  which user want to keep */
+    commentOption: Comment['comment'];
 
     /** Whether the transaction is reimbursable */
     reimbursable: boolean;

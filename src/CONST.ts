@@ -4147,7 +4147,7 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
     },
-    REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
+    REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'comment', 'taxCode', 'billable', 'reimbursable'],
 
     REPORT_VIOLATIONS: {
         FIELD_REQUIRED: 'fieldRequired',

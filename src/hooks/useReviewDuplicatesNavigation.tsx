@@ -3,7 +3,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type StepName = 'description' | 'merchant' | 'category' | 'billable' | 'tag' | 'taxCode' | 'reimbursable';
+type StepName = 'comment' | 'merchant' | 'category' | 'billable' | 'tag' | 'taxCode' | 'reimbursable';
 
 function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: StepName, threadReportID: string) {
     const [nextScreen, setNextScreen] = useState<StepName>(currentScreenName);
@@ -28,7 +28,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
             case 'tag':
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID));
                 break;
-            case 'description':
+            case 'comment':
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID));
                 break;
             case 'taxCode':

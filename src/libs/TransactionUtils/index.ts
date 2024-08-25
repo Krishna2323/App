@@ -898,7 +898,7 @@ type FieldsToChange = {
     category?: Array<string | undefined>;
     merchant?: Array<string | undefined>;
     tag?: Array<string | undefined>;
-    description?: Array<Comment | undefined>;
+    comment?: Array<Comment | undefined>;
     taxCode?: Array<string | undefined>;
     billable?: Array<boolean | undefined>;
     reimbursable?: Array<boolean | undefined>;
@@ -935,7 +935,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         merchant: ['modifiedMerchant', 'merchant'],
         category: ['category'],
         tag: ['tag'],
-        description: ['comment'],
+        comment: ['comment'],
         taxCode: ['taxCode'],
         billable: ['billable'],
         reimbursable: ['reimbursable'],
@@ -984,12 +984,12 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
             const firstTransaction = transactions[0];
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
 
-            if (fieldName === 'description') {
+            if (fieldName === 'comment') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
 
                 if (allCommentsAreEqual || allCommentsAreEmpty) {
-                    keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
+                    keep[fieldName] = firstTransaction?.comment ?? firstTransaction?.comment;
                 } else {
                     processChanges(fieldName, transactions, keys);
                 }
@@ -1027,7 +1027,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         ...restReviewDuplicateTransaction,
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
-        comment: {comment: reviewDuplicateTransaction?.description},
+        comment: reviewDuplicateTransaction?.comment,
     };
 }
 
@@ -1045,7 +1045,7 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
         category: reviewDuplicates?.category ?? '',
         tag: reviewDuplicates?.tag ?? '',
         merchant: reviewDuplicates?.merchant ?? '',
-        comment: reviewDuplicates?.description ?? '',
+        comment: reviewDuplicates?.comment?.comment ?? '',
     };
 }
 

@@ -18,22 +18,24 @@ function ReviewDescription() {
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'description', route.params.threadReportID ?? '');
+    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'comment', route.params.threadReportID ?? '');
     const options = useMemo(
         () =>
-            compareResult.change.description?.map((description) =>
-                !description?.comment
+            compareResult.change.comment?.map((comment) =>
+                !comment?.comment
                     ? {text: translate('violations.none'), value: ''}
                     : {
-                          text: description.comment,
-                          value: description.comment,
+                          text: comment.comment,
+                          value: comment.comment,
                       },
             ),
-        [compareResult.change.description, translate],
+        [compareResult.change.comment, translate],
     );
-    const setDescription = (data: FieldItemType<'description'>) => {
+
+    const setDescription = (data: FieldItemType<'commentOption'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({description: data.value});
+            const comment = compareResult.change.comment?.find((d) => d?.comment === data.value);
+            setReviewDuplicatesKey({comment: {...comment, comment: data.value}});
         }
         navigateToNextScreen();
     };
@@ -41,7 +43,7 @@ function ReviewDescription() {
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields<'description'>
+            <ReviewFields<'commentOption'>
                 stepNames={stepNames}
                 label={translate('violations.descriptionToKeep')}
                 options={options}
