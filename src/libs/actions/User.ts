@@ -653,6 +653,11 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     });
 }
 
+function subscribeToActiveGuides() {
+    console.log('SUBSCRIBING');
+    PusherUtils.subscribe(`activeGuides`, 'Subscribe active user guides', (pushJson) => console.log(pushJson));
+}
+
 /**
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
@@ -1144,4 +1149,5 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
+    subscribeToActiveGuides,
 };

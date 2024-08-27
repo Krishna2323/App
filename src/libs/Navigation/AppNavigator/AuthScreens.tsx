@@ -202,6 +202,23 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
+let hasCheckedUserIsGuide = false;
+Onyx.connect({
+    key: ONYXKEYS.USER,
+    callback: (user) => {
+        if (hasCheckedUserIsGuide) {
+            return;
+        }
+        if (!user.isGuide === undefined || !user?.validated) {
+            return;
+        }
+        hasCheckedUserIsGuide = true;
+        if (!user.isGuide) {
+            User.subscribeToActiveGuides();
+        }
+    },
+});
+
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

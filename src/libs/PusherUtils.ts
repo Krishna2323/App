@@ -48,8 +48,32 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
     Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
 }
 
+/**
+ * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
+ */
+function subscribe(pusherChannelName: string, eventName: string, onEvent: (pushJSON: OnyxUpdatesFromServer) => void) {
+    function logPusherEvent(pushJSON: OnyxUpdatesFromServer) {
+        Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
+    }
+
+    function onPusherResubscribeToPrivateUserChannel() {
+        NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
+    }
+
+    function onEventPush(pushJSON: OnyxUpdatesFromServer) {
+        logPusherEvent(pushJSON);
+        onEvent(pushJSON);
+    }
+
+    function onSubscriptionFailed(error: Error) {
+        Log.hmmm('Failed to subscribe to Pusher channel', {error, pusherChannelName, eventName});
+    }
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
+}
+
 export default {
     subscribeToPrivateUserChannelEvent,
     subscribeToMultiEvent,
     triggerMultiEventHandler,
+    subscribe,
 };
