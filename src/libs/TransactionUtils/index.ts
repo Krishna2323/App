@@ -1,4 +1,3 @@
-import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashSet from 'lodash/set';
@@ -248,15 +247,15 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Given the edit made to the expense, return an updated transaction object.
  */
-function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
+function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Partial<Transaction> {
     // Only changing the first level fields so no need for deep clone now
-    const updatedTransaction = lodashDeepClone(transaction);
+    const updatedTransaction: Partial<Transaction> = {};
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
     if (Object.hasOwn(transactionChanges, 'comment')) {
         updatedTransaction.comment = {
-            ...updatedTransaction.comment,
+            ...transaction.comment,
             comment: transactionChanges.comment,
         };
     }
@@ -295,7 +294,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         const policy = PolicyUtils.getPolicy(policyID);
 
         // Get the new distance unit from the rate's unit
-        const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
+        const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: {...transaction, ...updatedTransaction}, policy});
 
         // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {

@@ -2516,9 +2516,12 @@ function getUpdateMoneyRequestParams(
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    let updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : undefined;
-    const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
+    let updatedTransaction: Partial<OnyxEntry<OnyxTypes.Transaction>> = transaction
+        ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport)
+        : undefined;
+    const transactionDetails = ReportUtils.getTransactionDetails(transaction ? {...transaction, ...updatedTransaction} : undefined);
 
+    console.log(transaction);
     if (updatedTransaction?.pendingFields) {
         pendingFields = {
             ...pendingFields,
@@ -2546,11 +2549,11 @@ function getUpdateMoneyRequestParams(
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         updatedTransaction = {
             ...updatedTransaction,
-            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate(updatedTransaction, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
+            ...TransactionUtils.calculateAmountForUpdatedWaypointOrRate({...transaction, ...updatedTransaction}, transactionChanges, policy, ReportUtils.isExpenseReport(iouReport)),
         };
 
         // Update the distanceUnit
-        lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy}));
+        lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: {...transaction, ...updatedTransaction}, policy}));
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
@@ -2578,7 +2581,10 @@ function getUpdateMoneyRequestParams(
     // - we're updating the distance rate while the waypoints are still pending
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, {
+        ...transaction,
+        ...(updatedTransaction?.amount ? {updatedTransaction} : {}),
+    } as OnyxTypes.Transaction);
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && TransactionUtils.isFetchingWaypointsFromServer(transaction))) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -2625,7 +2631,14 @@ function getUpdateMoneyRequestParams(
     }
 
     // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-    const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+    const diff = calculateDiffAmount(
+        iouReport,
+        {
+            ...transaction,
+            ...updatedTransaction,
+        } as OnyxTypes.Transaction,
+        transaction,
+    );
 
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
     if (!iouReport) {
@@ -2801,7 +2814,7 @@ function getUpdateMoneyRequestParams(
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
-                updatedTransaction,
+                {...transaction, ...updatedTransaction} as OnyxTypes.Transaction,
                 currentTransactionViolations,
                 policy,
                 policyTagList ?? {},
@@ -2862,7 +2875,7 @@ function getUpdateTrackExpenseParams(
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     let updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, false) : null;
-    const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
+    const transactionDetails = ReportUtils.getTransactionDetails(transaction ? {...transaction, ...updatedTransaction} : undefined);
 
     if (transactionDetails?.waypoints) {
         // This needs to be a JSON string since we're sending this to the MapBox API
@@ -3185,7 +3198,10 @@ function updateMoneyRequestDistance({
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
+
     const {params, onyxData} = data;
+
+    console.log(params, onyxData);
 
     const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
@@ -5354,7 +5370,7 @@ function editRegularMoneyRequest(
     // from the server with the currency conversion
     let updatedMoneyRequestReport = {...iouReport};
     const updatedChatReport = {...chatReport};
-    const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
+    const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount({...transaction, ...updatedTransaction} as OnyxTypes.Transaction, true);
     if (updatedTransaction?.currency === iouReport?.currency && updatedTransaction?.modifiedAmount && diff !== 0) {
         if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
             updatedMoneyRequestReport.total += diff;
@@ -5372,7 +5388,7 @@ function editRegularMoneyRequest(
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             updatedMoneyRequestReport.total ?? 0,
             '',
-            updatedTransaction.currency,
+            updatedTransaction.currency ?? (transaction?.currency as string),
             '',
             false,
         );
@@ -5389,7 +5405,9 @@ function editRegularMoneyRequest(
         updatedChatReport.lastMessageHtml = messageText;
     }
 
-    const isScanning = TransactionUtils.hasReceipt(updatedTransaction) && TransactionUtils.isReceiptBeingScanned(updatedTransaction);
+    const isScanning =
+        TransactionUtils.hasReceipt({...transaction, ...updatedTransaction} as OnyxTypes.Transaction) &&
+        TransactionUtils.isReceiptBeingScanned({...transaction, ...updatedTransaction} as OnyxTypes.Transaction);
 
     // STEP 4: Compose the optimistic data
     const currentTime = DateUtils.getDBTime();
@@ -5570,7 +5588,7 @@ function editRegularMoneyRequest(
     if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            updatedTransaction,
+            {...transaction, ...updatedTransaction} as OnyxTypes.Transaction,
             currentTransactionViolations,
             policy,
             policyTags,
@@ -5586,7 +5604,7 @@ function editRegularMoneyRequest(
     }
 
     // STEP 6: Call the API endpoint
-    const {created, amount, currency, comment, merchant, category, billable, tag} = ReportUtils.getTransactionDetails(updatedTransaction) ?? {};
+    const {created, amount, currency, comment, merchant, category, billable, tag} = ReportUtils.getTransactionDetails({...transaction, ...updatedTransaction} as OnyxTypes.Transaction) ?? {};
 
     const parameters: EditMoneyRequestParams = {
         transactionID,
