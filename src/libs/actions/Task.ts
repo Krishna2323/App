@@ -349,8 +349,8 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
-    const taskReportID = taskReport?.reportID ?? '-1';
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportIDP?: string) {
+    const taskReportID = taskReportIDP ?? taskReport?.reportID ?? '-1';
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const parentReport = getParentReport(taskReport);
@@ -435,8 +435,8 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Reopen a closed task
  */
-function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
-    const taskReportID = taskReport?.reportID ?? '-1';
+function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportIDP?: string) {
+    const taskReportID = taskReportIDP ?? taskReport?.reportID ?? '-1';
     const message = `marked as incomplete`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED, message);
     const parentReport = getParentReport(taskReport);
@@ -1193,7 +1193,7 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 //     return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
 // }
 
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, allowEditingConciergeTask?: boolean): boolean {
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, allowEditingConciergeTask?: boolean, taskAssigneeAccountID?: number): boolean {
     if (getTaskOwnerAccountID(taskReport) === CONST.ACCOUNT_ID.CONCIERGE && !allowEditingConciergeTask) {
         return false;
     }
@@ -1205,6 +1205,10 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 
     if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isAuditor(taskReport)) {
         return false;
+    }
+
+    if (taskAssigneeAccountID && sessionAccountID === taskAssigneeAccountID) {
+        return true;
     }
 
     return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
