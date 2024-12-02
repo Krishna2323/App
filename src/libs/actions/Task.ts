@@ -1170,27 +1170,44 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task, except auditor
- */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
-    if (ReportUtils.isCanceledTaskReport(taskReport)) {
+//  */
+// function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
+//     if (ReportUtils.isCanceledTaskReport(taskReport)) {
+//         return false;
+//     }
+
+//     const parentReport = getParentReport(taskReport);
+//     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
+//     if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs)) {
+//         return false;
+//     }
+
+//     if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
+//         return true;
+//     }
+
+//     if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isAuditor(taskReport)) {
+//         return false;
+//     }
+
+//     return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
+// }
+
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, allowEditingConciergeTask?: boolean): boolean {
+    if (getTaskOwnerAccountID(taskReport) === CONST.ACCOUNT_ID.CONCIERGE && !allowEditingConciergeTask) {
         return false;
     }
-
     const parentReport = getParentReport(taskReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
     if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs)) {
         return false;
     }
 
-    if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
-        return true;
-    }
-
     if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isAuditor(taskReport)) {
         return false;
     }
 
-    return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
+    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
 }
 
 /**

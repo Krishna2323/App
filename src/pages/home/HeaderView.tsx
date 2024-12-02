@@ -75,6 +75,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || report?.reportID || '-1'}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -290,7 +291,10 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                 {!shouldUseNarrowLayout && isChatUsedForOnboarding && freeTrialButton}
-                                {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
+                                {isTaskReport &&
+                                    !shouldUseNarrowLayout &&
+                                    ReportUtils.isOpenTaskReport(report, parentReportAction) &&
+                                    Task.canModifyTask(report, session?.accountID ?? -1, true) && <TaskHeaderActionButton report={report} />}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
                             {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
