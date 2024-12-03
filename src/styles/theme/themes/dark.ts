@@ -142,7 +142,7 @@ const darkTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.REFERRAL_DETAILS]: {
-            backgroundColor: colors.pink800,
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {

@@ -1,13 +1,13 @@
 import React, {useRef} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import ContextMenuItem from '@components/ContextMenuItem';
+import FeatureList from '@components/FeatureList';
 import HeaderPageLayout from '@components/HeaderPageLayout';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
@@ -16,6 +16,7 @@ import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
+import colors from '@styles/theme/colors';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,14 +54,6 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
     return (
         <HeaderPageLayout
             title={translate('common.referral')}
-            headerContent={
-                <Icon
-                    src={PaymentHands}
-                    width={589}
-                    height={232}
-                />
-            }
-            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.REFERRAL_DETAILS].backgroundColor}
             testID={ReferralDetailsPage.displayName}
             onBackButtonPress={() => {
@@ -71,32 +64,41 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
                 Navigation.goBack();
             }}
         >
-            <Text style={[styles.textHeadline, styles.mb2, styles.ph5]}>{contentHeader}</Text>
-            <Text style={[styles.webViewStyles.baseFontStyle, styles.ml0, styles.mb5, styles.ph5]}>{contentBody}</Text>
-
-            {shouldShowClipboard && (
-                <ContextMenuItem
-                    isAnonymousAction
-                    text={translate('referralProgram.copyReferralLink')}
-                    icon={Expensicons.Copy}
-                    successIcon={Expensicons.Checkmark}
-                    successText={translate('qrCodes.copied')}
-                    onPress={() => Clipboard.setString(referralLink)}
+            <FeatureList
+                icon={PaymentHands}
+                title={contentHeader}
+                subtitle={contentBody}
+                iconHeight={232}
+                iconWidth={589}
+                titleStyles={[styles.textHeadline, styles.mv2]}
+                iconContainerStyles={[styles.staticHeaderImage, styles.justifyContentBetween, {backgroundColor: colors.pink800}, styles.flex1, styles.alignItemsEnd]}
+                containerStyles={[styles.pt0, styles.overflowHidden]}
+            >
+                {!shouldShowClipboard && (
+                    <View style={[styles.sectionMenuItemTopDescription, styles.ph0]}>
+                        <ContextMenuItem
+                            isAnonymousAction
+                            text={translate('referralProgram.copyReferralLink')}
+                            icon={Expensicons.Copy}
+                            successIcon={Expensicons.Checkmark}
+                            successText={translate('qrCodes.copied')}
+                            onPress={() => Clipboard.setString(referralLink)}
+                        />
+                    </View>
+                )}
+                <MenuItem
+                    wrapperStyle={[styles.mb4, styles.sectionMenuItemTopDescription]}
+                    ref={popoverAnchor}
+                    title={translate('requestorStep.learnMore')}
+                    icon={Expensicons.QuestionMark}
+                    shouldShowRightIcon
+                    iconRight={Expensicons.NewWindow}
+                    disabled={isExecuting}
+                    shouldBlockSelection
+                    onPress={singleExecution(() => Link.openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
+                    onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK, popoverAnchor.current)}
                 />
-            )}
-
-            <MenuItem
-                wrapperStyle={styles.mb4}
-                ref={popoverAnchor}
-                title={translate('requestorStep.learnMore')}
-                icon={Expensicons.QuestionMark}
-                shouldShowRightIcon
-                iconRight={Expensicons.NewWindow}
-                disabled={isExecuting}
-                shouldBlockSelection
-                onPress={singleExecution(() => Link.openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
-                onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK, popoverAnchor.current)}
-            />
+            </FeatureList>
         </HeaderPageLayout>
     );
 }
