@@ -78,7 +78,7 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
                 subtitleStyles={styles.mb6}
             >
                 {!shouldShowClipboard && (
-                    <View style={[styles.sectionMenuItemTopDescription, styles.ph2]}>
+                    <View style={[styles.sectionMenuItemTopDescription, styles.ph3]}>
                         <ContextMenuItem
                             isAnonymousAction
                             text={translate('referralProgram.copyReferralLink')}
