@@ -10,7 +10,7 @@ import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import type DotLottieAnimation from './LottieAnimations/types';
 import MenuItem from './MenuItem';
-import Section, {CARD_LAYOUT} from './Section';
+import Section from './Section';
 
 type FeatureListItem = {
     icon: IconAsset;
@@ -43,10 +43,10 @@ type FeatureListProps = {
     onSecondaryButtonPress?: () => void;
 
     /** A list of menuItems representing the feature list. */
-    menuItems?: FeatureListItem[];
+    menuItems: FeatureListItem[];
 
     /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
-    illustration?: DotLottieAnimation | IconAsset;
+    illustration: DotLottieAnimation | IconAsset;
 
     /** The style passed to the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
@@ -65,21 +65,6 @@ type FeatureListProps = {
 
     /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
-
-    /** The icon to display along with the title */
-    icon?: IconAsset;
-    /** The width of the icon. */
-    iconWidth?: number;
-
-    /** The height of the icon. */
-    iconHeight?: number;
-
-    /** Customize the Icon container */
-    iconContainerStyles?: StyleProp<ViewStyle>;
-
-    containerStyles?: StyleProp<ViewStyle>;
-
-    children?: React.ReactNode;
 };
 
 function FeatureList({
@@ -99,12 +84,6 @@ function FeatureList({
     illustrationContainerStyle,
     titleStyles,
     contentPaddingOnLargeScreens,
-    icon,
-    iconWidth,
-    iconHeight,
-    iconContainerStyles,
-    containerStyles,
-    children,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,23 +100,17 @@ function FeatureList({
             titleStyles={titleStyles}
             illustrationContainerStyle={illustrationContainerStyle}
             contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
-            icon={icon}
-            cardLayout={CARD_LAYOUT.ICON_ON_TOP}
-            iconHeight={iconHeight}
-            iconWidth={iconWidth}
-            iconContainerStyles={iconContainerStyles}
-            containerStyles={containerStyles}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
-                    {menuItems?.map(({translationKey, icon: menuItemIcon}) => (
+                    {menuItems.map(({translationKey, icon}) => (
                         <View
                             key={translationKey}
                             style={styles.w100}
                         >
                             <MenuItem
                                 title={translate(translationKey)}
-                                icon={menuItemIcon}
+                                icon={icon}
                                 iconWidth={variables.menuIconSize}
                                 iconHeight={variables.menuIconSize}
                                 interactive={false}
@@ -165,18 +138,14 @@ function FeatureList({
                         type="error"
                     />
                 )}
-                {!!ctaText && (
-                    <Button
-                        text={ctaText}
-                        onPress={onCtaPress}
-                        accessibilityLabel={ctaAccessibilityLabel}
-                        style={styles.w100}
-                        success
-                        large
-                    />
-                )}
-
-                {children}
+                <Button
+                    text={ctaText}
+                    onPress={onCtaPress}
+                    accessibilityLabel={ctaAccessibilityLabel}
+                    style={styles.w100}
+                    success
+                    large
+                />
             </View>
         </Section>
     );

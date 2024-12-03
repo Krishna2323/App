@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import ContextMenuItem from '@components/ContextMenuItem';
-import FeatureList from '@components/FeatureList';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
+import Section, {CARD_LAYOUT} from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
@@ -64,18 +64,21 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
                 Navigation.goBack();
             }}
         >
-            <FeatureList
+            <Section
                 icon={PaymentHands}
                 title={contentHeader}
                 subtitle={contentBody}
                 iconHeight={232}
                 iconWidth={589}
+                isCentralPane
                 titleStyles={[styles.textHeadline, styles.mv2]}
-                iconContainerStyles={[styles.staticHeaderImage, styles.justifyContentBetween, {backgroundColor: colors.pink800}, styles.flex1, styles.alignItemsEnd]}
+                iconContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter, {backgroundColor: colors.pink800}, styles.flex1, styles.alignItemsEnd]}
                 containerStyles={[styles.pt0, styles.overflowHidden]}
+                cardLayout={CARD_LAYOUT.ICON_ON_TOP}
+                subtitleStyles={styles.mb6}
             >
                 {!shouldShowClipboard && (
-                    <View style={[styles.sectionMenuItemTopDescription, styles.ph0]}>
+                    <View style={[styles.sectionMenuItemTopDescription, styles.ph2]}>
                         <ContextMenuItem
                             isAnonymousAction
                             text={translate('referralProgram.copyReferralLink')}
@@ -98,7 +101,7 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
                     onPress={singleExecution(() => Link.openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
                     onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK, popoverAnchor.current)}
                 />
-            </FeatureList>
+            </Section>
         </HeaderPageLayout>
     );
 }
