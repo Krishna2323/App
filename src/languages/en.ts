@@ -3750,6 +3750,8 @@ const translations = {
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
+            workspaceName: (userName: string, workspaceNumber?: number) => `${userName}'s Workspace${workspaceNumber ? ' ' + workspaceNumber : ''}`,
+            myGroupWorkspace: 'My Group Workspace',
         },
         people: {
             genericFailureMessage: 'An error occurred removing a member from the workspace, please try again.',

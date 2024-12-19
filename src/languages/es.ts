@@ -3795,6 +3795,8 @@ const translations = {
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
+            workspaceName: (userName: string, workspaceNumber?: number) => `El espacio de trabajo${workspaceNumber ? ' ' + workspaceNumber : ''} de ${userName}`,
+            myGroupWorkspace: 'Mi Espacio de Trabajo en Grupo',
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',
