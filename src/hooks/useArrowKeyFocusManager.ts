@@ -15,6 +15,7 @@ type Config = {
     allowHorizontalArrowKeys?: boolean;
     allowNegativeIndexes?: boolean;
     isFocused?: boolean;
+    priority?: number;
 };
 
 type UseArrowKeyFocusManager = [number, (index: number) => void];
@@ -50,6 +51,7 @@ export default function useArrowKeyFocusManager({
     allowHorizontalArrowKeys = false,
     allowNegativeIndexes = false,
     isFocused = true,
+    priority = 0,
 }: Config): UseArrowKeyFocusManager {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
     const prevIsFocusedIndex = usePrevious(focusedIndex);
@@ -57,16 +59,18 @@ export default function useArrowKeyFocusManager({
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
             isActive,
+            priority,
         }),
-        [isActive, shouldExcludeTextAreaNodes],
+        [isActive, shouldExcludeTextAreaNodes, priority],
     );
 
     const horizontalArrowConfig = useMemo(
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
             isActive: isActive && allowHorizontalArrowKeys,
+            priority,
         }),
-        [isActive, shouldExcludeTextAreaNodes, allowHorizontalArrowKeys],
+        [isActive, shouldExcludeTextAreaNodes, allowHorizontalArrowKeys, priority],
     );
 
     useEffect(() => {

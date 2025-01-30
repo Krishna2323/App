@@ -67,6 +67,9 @@ type SearchRouterListProps = {
 
     /** Callback to call when the list of autocomplete substitutions should be updated */
     updateAutocompleteSubstitutions: (item: SearchQueryItem) => void;
+
+    /** Callback to call when the list of autocomplete substitutions should be updated */
+    isVisible: boolean;
 };
 
 const defaultListOptions = {
@@ -119,7 +122,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 
 // Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
 function SearchRouterList(
-    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchRouterListProps,
+    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions, isVisible}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -491,6 +494,7 @@ function SearchRouterList(
             ref={ref}
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
+            arrowKeyPriority={isVisible ? 0 : 1}
         />
     );
 }

@@ -122,6 +122,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleStyles,
         initialNumToRender = 12,
         listItemTitleContainerStyles,
+        arrowKeyPriority = 0,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -334,6 +335,7 @@ function BaseSelectionList<TItem extends ListItem>(
             }
         },
         isFocused,
+        priority: arrowKeyPriority,
     });
 
     const selectedItemIndex = useMemo(

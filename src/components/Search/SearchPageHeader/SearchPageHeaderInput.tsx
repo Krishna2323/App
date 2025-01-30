@@ -240,6 +240,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                             setTextQuery={setTextInputValue}
                             updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                             ref={listRef}
+                            isVisible={isAutocompleteListVisible}
                         />
                     </View>
                 </View>
@@ -301,6 +302,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                         setTextQuery={setTextInputValue}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
+                        isVisible={isAutocompleteListVisible}
                     />
                 </View>
             </View>

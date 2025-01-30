@@ -655,6 +655,8 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Initial number of items to render */
     initialNumToRender?: number;
+
+    arrowKeyPriority?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

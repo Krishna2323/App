@@ -33,6 +33,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
+import {useSearchRouterContext} from './SearchRouterContext';
 import SearchRouterInput from './SearchRouterInput';
 import type {GetAdditionalSectionsCallback} from './SearchRouterList';
 import SearchRouterList from './SearchRouterList';
@@ -274,6 +275,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+    const {isSearchRouterDisplayed} = useSearchRouterContext();
 
     return (
         <View
@@ -319,6 +321,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         setTextQuery={setTextInputValue}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
+                        isVisible={isSearchRouterDisplayed}
                     />
                 </>
             )}
