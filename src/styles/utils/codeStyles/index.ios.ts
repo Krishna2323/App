@@ -11,11 +11,16 @@ const codeWordStyle: CodeWordStyles = {
 };
 
 const codeTextStyle: CodeTextStyles = {
-    lineHeight: 18,
+    lineHeight: 22,
 };
 
 const codePlainTextStyle: CodeTextStyles = {
     lineHeight: 15,
 };
 
-export default {codeWordWrapper, codeWordStyle, codeTextStyle, codePlainTextStyle};
+const codeWithTextStyle: CodeWordStyles = {
+    top: 7,
+    marginTop: 7,
+};
+
+export default {codeWordWrapper, codeWordStyle, codeTextStyle, codePlainTextStyle, codeWithTextStyle};

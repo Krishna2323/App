@@ -3336,6 +3336,10 @@ const styles = (theme: ThemeColors) =>
             ...codeStyles.codePlainTextStyle,
         },
 
+        codeWithTextStyle: {
+            ...codeStyles.codeWithTextStyle,
+        },
+
         fullScreenLoading: {
             backgroundColor: theme.componentBG,
             opacity: 0.8,

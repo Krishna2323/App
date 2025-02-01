@@ -24,6 +24,8 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
     const styles = useThemeStyles();
     const data = getCurrentData(defaultRendererProps);
 
+    const tags = defaultRendererProps.tnode?.parent?.domNode?.children.map((e) => e.type);
+    const hasText = tags?.includes('text');
     return (
         <TDefaultRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -31,7 +33,8 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
         >
             <WrappedText
                 textStyles={textStyle}
-                wordStyles={[boxModelStyle, styles.codeWordStyle]}
+                wordStyles={[boxModelStyle, styles.codeWordStyle, hasText && styles.codeWithTextStyle]}
+                // hasText={tags?.includes('text')}
             >
                 {data}
             </WrappedText>
