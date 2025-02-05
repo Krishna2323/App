@@ -35,13 +35,16 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             isPlayPendingRef.current = true;
             return;
         }
-        currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
-            const newStatus: AVPlaybackStatusToSet = {shouldPlay: true};
-            if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
-                newStatus.positionMillis = 0;
-            }
-            playVideoPromiseRef.current = currentVideoPlayerRef.current?.setStatusAsync(newStatus);
-        });
+        currentVideoPlayerRef.current
+            ?.getStatusAsync?.()
+            .then((status) => {
+                const newStatus: AVPlaybackStatusToSet = {shouldPlay: true};
+                if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
+                    newStatus.positionMillis = 0;
+                }
+                playVideoPromiseRef.current = currentVideoPlayerRef.current?.setStatusAsync(newStatus);
+            })
+            .catch((e) => console.log(e));
     }, [currentVideoPlayerRef]);
 
     const unloadVideo = useCallback(() => {
