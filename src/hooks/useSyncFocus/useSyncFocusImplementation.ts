@@ -22,7 +22,7 @@ const useSyncFocusImplementation = (ref: RefObject<View | HTMLElement>, isFocuse
 
         ref.current?.focus({preventScroll: true});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [didScreenTransitionEnd, isFocused, ref]);
+    }, [didScreenTransitionEnd, isFocused, ref, shouldSyncFocus]);
 };
 
 export default useSyncFocusImplementation;

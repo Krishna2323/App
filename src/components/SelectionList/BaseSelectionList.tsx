@@ -3,7 +3,15 @@ import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
+import type {
+    LayoutChangeEvent,
+    NativeSyntheticEvent,
+    SectionList as RNSectionList,
+    TextInput as RNTextInput,
+    SectionListData,
+    SectionListRenderItemInfo,
+    TextInputKeyPressEventData,
+} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -149,6 +157,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
     const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
+    const [isTabPressed, setIsTabPressed] = useState(false);
 
     const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
         if (!itemKey) {
@@ -570,7 +579,8 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldIgnoreFocus={shouldIgnoreFocus}
                     setFocusedIndex={setFocusedIndex}
                     normalizedIndex={normalizedIndex}
-                    shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
+                    // shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
+                    shouldSyncFocus={(!isTextInputFocusedRef.current && hasKeyBeenPressed.current) || isTabPressed}
                     wrapperStyle={listItemWrapperStyle}
                     titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
@@ -609,7 +619,10 @@ function BaseSelectionList<TItem extends ListItem>(
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
-                    onFocus={() => (isTextInputFocusedRef.current = true)}
+                    onFocus={() => {
+                        setIsTabPressed(false);
+                        isTextInputFocusedRef.current = true;
+                    }}
                     onBlur={() => (isTextInputFocusedRef.current = false)}
                     label={textInputLabel}
                     accessibilityLabel={textInputLabel}
@@ -628,6 +641,12 @@ function BaseSelectionList<TItem extends ListItem>(
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
+                    onKeyPress={(e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+                        if (e.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                            return;
+                        }
+                        setIsTabPressed(true);
+                    }}
                 />
             </View>
         );
