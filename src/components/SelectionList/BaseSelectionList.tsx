@@ -579,7 +579,6 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldIgnoreFocus={shouldIgnoreFocus}
                     setFocusedIndex={setFocusedIndex}
                     normalizedIndex={normalizedIndex}
-                    // shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     shouldSyncFocus={(!isTextInputFocusedRef.current && hasKeyBeenPressed.current) || isTabPressed}
                     wrapperStyle={listItemWrapperStyle}
                     titleStyles={listItemTitleStyles}
@@ -642,10 +641,13 @@ function BaseSelectionList<TItem extends ListItem>(
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
                     onKeyPress={(e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
-                        if (e.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                        if (e.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey && !e.nativeEvent?.shiftKey) {
+                            setIsTabPressed(true);
                             return;
                         }
-                        setIsTabPressed(true);
+                        if (e.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey && e.nativeEvent?.shiftKey) {
+                            hasKeyBeenPressed.current = false;
+                        }
                     }}
                 />
             </View>
