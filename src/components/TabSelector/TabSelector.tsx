@@ -5,6 +5,7 @@ import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerE
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -73,7 +74,11 @@ function TabSelector({
     const theme = useTheme();
     const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
+    const {isSmallScreen} = useResponsiveLayout();
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
+    const [tabsWidth, setTabsWidth] = useState({activeTabWidth: 0, tabWidth: 0, activeTabIndex: 0});
+    const containerWidthHalf = (tabsWidth.activeTabWidth + tabsWidth.tabWidth * (state.routes.length - 1) + 40) / 2;
+    const shiftHorizontal = containerWidthHalf - (tabsWidth.tabWidth * tabsWidth.activeTabIndex + tabsWidth.activeTabWidth / 2) - 20;
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -126,6 +131,9 @@ function TabSelector({
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                             shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                             renderProductTrainingTooltip={renderProductTrainingTooltip}
+                            setTabsWidth={setTabsWidth}
+                            index={index}
+                            shiftHorizontal={!isSmallScreen ? shiftHorizontal : undefined}
                         />
                     );
                 })}

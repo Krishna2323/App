@@ -39,6 +39,7 @@ function GenericTooltip({
     isEducationTooltip = false,
     onTooltipPress,
     computeHorizontalShiftForNative = false,
+    addManualShiftToPointer = true,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -191,6 +192,7 @@ function GenericTooltip({
                     onHideTooltip={onPressOverlay}
                     onTooltipPress={onTooltipPress}
                     computeHorizontalShiftForNative={computeHorizontalShiftForNative}
+                    addManualShiftToPointer={addManualShiftToPointer}
                 />
             )}
             {/* eslint-disable-next-line react-compiler/react-compiler */}

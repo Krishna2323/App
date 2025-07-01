@@ -48,6 +48,7 @@ type BaseGenericTooltipProps = {
     | 'shouldUseOverlay'
     | 'onTooltipPress'
     | 'computeHorizontalShiftForNative'
+    | 'addManualShiftToPointer'
 >;
 
 // eslint-disable-next-line import/prefer-default-export

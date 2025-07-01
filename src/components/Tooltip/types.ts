@@ -15,6 +15,8 @@ type SharedTooltipProps = {
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
     shiftHorizontal?: number | (() => number);
 
+    addManualShiftToPointer?: boolean;
+
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical?: number | (() => number);

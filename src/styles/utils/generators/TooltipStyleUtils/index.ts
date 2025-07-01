@@ -52,6 +52,7 @@ type TooltipParams = {
     shouldAddHorizontalPadding?: boolean;
     isEducationTooltip?: boolean;
     computeHorizontalShiftForNative?: boolean;
+    addManualShiftToPointer?: boolean;
 };
 
 type TooltipAnimationProps = {
@@ -80,6 +81,7 @@ type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => To
  * @param [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
+ * @param [addManualShiftToPointer] - Should add manual shift to the pointer.
  * @param [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
  * @param [shouldForceRenderingBelow] - Should display tooltip below the wrapped component.
@@ -99,8 +101,10 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         tooltipWrapperHeight,
         manualShiftHorizontal = 0,
         manualShiftVertical = 0,
+        addManualShiftToPointer = true,
         shouldAddHorizontalPadding = true,
         shouldForceRenderingBelow = false,
+
         anchorAlignment = {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -204,7 +208,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                     break;
                 case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 default:
-                    pointerWrapperLeft = tooltipWidth / 2 - pointerWidth / 2;
+                    pointerWrapperLeft = tooltipWidth / 2 - pointerWidth / 2 - (addManualShiftToPointer ? 0 : manualShiftHorizontal);
                     rootWrapperLeft += tooltipTargetWidth / 2 - tooltipWidth / 2;
             }
 

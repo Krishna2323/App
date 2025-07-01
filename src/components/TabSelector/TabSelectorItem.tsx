@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+import type {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -45,6 +46,18 @@ type TabSelectorItemProps = {
 
     /** Function to render the content of the product training tooltip. */
     renderProductTrainingTooltip?: () => React.JSX.Element;
+
+    shiftHorizontal?: number;
+
+    index: number;
+
+    setTabsWidth: React.Dispatch<
+        React.SetStateAction<{
+            activeTabWidth: number;
+            tabWidth: number;
+            activeTabIndex: number;
+        }>
+    >;
 };
 
 function TabSelectorItem({
@@ -59,14 +72,38 @@ function TabSelectorItem({
     testID,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
+    setTabsWidth,
+    shiftHorizontal,
+    index,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
+    const ref = useRef<View | null | undefined>(null);
 
     const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
 
+    useEffect(() => {
+        if (isActive) {
+            ref.current?.measure((x, y, w) => {
+                setTabsWidth((prev) => ({
+                    ...prev,
+                    activeTabWidth: w,
+                    activeTabIndex: index,
+                }));
+            });
+        } else {
+            ref.current?.measure((x, y, w) => {
+                setTabsWidth((prev) => ({
+                    ...prev,
+                    tabWidth: w,
+                }));
+            });
+        }
+    }, [index, isActive, setTabsWidth]);
+
     const children = (
         <AnimatedPressableWithFeedback
+            ref={ref}
             accessibilityLabel={title}
             style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
             wrapperStyle={[styles.flexGrow1]}
@@ -103,6 +140,8 @@ function TabSelectorItem({
             }}
             wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pAbsolute]}
             computeHorizontalShiftForNative
+            shiftHorizontal={shiftHorizontal}
+            addManualShiftToPointer={!!shiftHorizontal && false}
         >
             {children}
         </EducationalTooltip>
