@@ -80,10 +80,10 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
             onCancel={() => {
                 setIsVisible(false);
                 blockedNavigationAction.current = undefined;
-                onCancel?.();
             }}
             onModalHide={() => {
                 shouldNavigateBack.current = false;
+                onCancel?.();
             }}
         />
     );
