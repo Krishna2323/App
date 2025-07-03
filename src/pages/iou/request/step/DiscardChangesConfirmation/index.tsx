@@ -4,12 +4,13 @@ import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardChangesConfirmationProps) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
@@ -25,7 +26,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
 
                 e.preventDefault();
                 blockedNavigationAction.current = e.data.action;
-                setIsVisible(true);
+                navigateAfterInteraction(() => setIsVisible((prev) => !prev));
             },
             [getHasUnsavedChanges],
         ),
@@ -39,16 +40,19 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
     useEffect(() => {
         // transitionStart is triggered before the previous page is fully loaded so RHP sliding animation
         // could be less "glitchy" when going back and forth between the previous and current pages
-        const unsubscribe = navigation.addListener('transitionStart', () => {
+        const unsubscribe = navigation.addListener('transitionStart', ({data: {closing}}) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (!getHasUnsavedChanges() || blockedNavigationAction.current || shouldNavigateBack.current) {
+            if (!getHasUnsavedChanges()) {
                 return;
             }
-
-            // Navigation.navigate() rerenders the current page and resets its states
-            window.history.go(1);
-            setIsVisible(true);
             shouldNavigateBack.current = true;
+            // Navigation.navigate() rerenders the current page and resets its states
+            if (closing) {
+                window.history.go(1);
+                return;
+            }
+            window.history.go(1);
+            navigateAfterInteraction(() => setIsVisible((prev) => !prev));
         });
 
         return unsubscribe;
@@ -76,6 +80,9 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
             onCancel={() => {
                 setIsVisible(false);
                 blockedNavigationAction.current = undefined;
+                onCancel?.();
+            }}
+            onModalHide={() => {
                 shouldNavigateBack.current = false;
             }}
         />
