@@ -317,6 +317,53 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
     return newEmojis;
 }
 
+const EMOJI_NAME = /:[\p{L}0-9_+-]+:/gu;
+const EMOJIS = /[\p{Extended_Pictographic}](?:\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu;
+
+type MatchWithIndex = {emoji: string; index: number; name?: string};
+
+type EmojiExtract = {
+    names: MatchWithIndex[]; // colon-style names found outside backticks
+    glyphs: MatchWithIndex[]; // actual emoji glyphs found outside backticks
+};
+
+/**
+ * Splits on backtick spans, then in each outside chunk runs both
+ * your EMOJI_NAME and EMOJIS regexes, collecting value+start-index.
+ */
+function extractEmojisOutsideBackticks(text: string): EmojiExtract {
+    // Splitting keeps the backtick chunks as separate array items:
+    // e.g. "a `:joy:` b 😂" → ["a ", "`:joy:`", " b 😂"]
+    const parts = text.split(/(`[^`]*`)/g);
+
+    const names: MatchWithIndex[] = [];
+    const glyphs: MatchWithIndex[] = [];
+
+    let cursor = 0;
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts.at(i);
+        if (i % 2 === 0 && part) {
+            // outside backticks → scan for both patterns
+            for (const m of part.matchAll(EMOJI_NAME)) {
+                names.push({emoji: m[0], index: cursor + (m.index ?? 0)});
+            }
+        } else if (part) {
+            for (const m of part.matchAll(EMOJIS)) {
+                const emoji = m[0];
+                const emojiData = findEmojiByCode(emoji);
+                // If the user has selected a language other than English, and the emoji doesn't exist in that language,
+                // we will check if the emoji exists in English.
+                if (emojiData) {
+                    glyphs.push({emoji, name: emojiData.name, index: cursor + (m.index ?? 0)});
+                }
+            }
+        }
+        cursor += part?.length ?? 0;
+    }
+
+    return {names, glyphs};
+}
+
 /**
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
@@ -333,14 +380,37 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
 
     let newText = text;
     const emojis: Emoji[] = [];
-    const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
-    if (!emojiData || emojiData.length === 0) {
+    // const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
+    const emojiData = extractEmojisOutsideBackticks(text).names;
+    const glyphsData = extractEmojisOutsideBackticks(text).glyphs;
+
+    if ((!emojiData || emojiData.length === 0) && (!glyphsData || glyphsData.length === 0)) {
         return {text: newText, emojis};
     }
 
     let cursorPosition;
+    let offset = 0;
 
-    for (const emoji of emojiData) {
+    for (const {emoji, index, name} of glyphsData) {
+        if (name) {
+            const rep = `:${name}:`;
+            const oldLen = emoji.length;
+
+            // adjust the start by how much newText has shifted so far:
+            const start = index + offset;
+
+            // do the replacement only once, at that exact spot:
+            newText = newText.slice(0, start) + rep + newText.slice(start + oldLen);
+
+            // update offset so future indices line up:
+            offset += rep.length - oldLen;
+
+            // track cursor at end of this replacement:
+            cursorPosition = start + rep.length - 1;
+        }
+    }
+
+    for (const {emoji, index} of emojiData) {
         const name = emoji.slice(1, -1);
         let checkEmoji = trie.search(name);
         // If the user has selected a language other than English, and the emoji doesn't exist in that language,
@@ -359,11 +429,15 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
                 types: checkEmoji.metaData.types,
             });
 
-            // Set the cursor to the end of the last replaced Emoji. Note that we position after
-            // the extra space, if we added one.
-            cursorPosition = newText.indexOf(emoji) + (emojiReplacement?.length ?? 0);
-
-            newText = newText.replace(emoji, emojiReplacement ?? '');
+            // inside your loop, instead of newText.replace():
+            const prefix = newText.slice(0, index);
+            const suffix = newText.slice(index);
+            // replace only the first match in `suffix`
+            const replacedSuffix = suffix.replace(emoji, emojiReplacement ?? '');
+            // reassemble
+            newText = prefix + replacedSuffix;
+            // update cursorPosition
+            cursorPosition = index + (emojiReplacement?.length ?? 0);
         }
     }
 
