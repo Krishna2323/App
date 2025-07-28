@@ -82,7 +82,7 @@ const validateTaxCode = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
 /**
  *  Function to validate tax value
  */
-const validateTaxValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
+const validateTaxValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM | typeof ONYXKEYS.FORMS.AMOUNT_PICKER_MODAL_FORM>) => {
     const errors = getFieldRequiredErrors(values, [INPUT_IDS.VALUE]);
 
     const value = values[INPUT_IDS.VALUE];

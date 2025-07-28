@@ -1,5 +1,7 @@
 import type {AmountFormProps} from '@components/AmountForm';
+import type {FormOnyxValues} from '@components/Form/types';
 import type {MenuItemBaseProps} from '@components/MenuItem';
+import type ONYXKEYS from '@src/ONYXKEYS';
 
 type AmountSelectorModalProps = {
     /** Whether the modal is visible */
@@ -13,6 +15,8 @@ type AmountSelectorModalProps = {
 
     /** Function to call when the user closes the modal */
     onClose: () => void;
+
+    validateValue?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.AMOUNT_PICKER_MODAL_FORM>) => Partial<Record<'value', string | undefined>>;
 } & Pick<MenuItemBaseProps, 'description'>;
 
 type AmountPickerProps = {
@@ -33,6 +37,8 @@ type AmountPickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    validateValue?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.AMOUNT_PICKER_MODAL_FORM>) => Partial<Record<'value', string | undefined>>;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
     AmountFormProps;
 
