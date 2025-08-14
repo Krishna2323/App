@@ -1,7 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {forwardRef, useImperativeHandle, useMemo, useRef} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -25,82 +25,103 @@ type WorkspaceListItem = ListItem & {
 
 type IOURequestStepPerDiemWorkspaceProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
 
-function IOURequestStepPerDiemWorkspace({
-    route: {
-        params: {transactionID, action, iouType},
-    },
-    transaction,
-}: IOURequestStepPerDiemWorkspaceProps) {
-    const {translate, localeCompare} = useLocalize();
-    const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+type IOURequestStepPerDiemWorkspaceRef = {
+    focus?: () => void;
+};
 
-    const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
-
-    const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
-        const availableWorkspaces = getActivePolicies(allPolicies, currentUserLogin).filter((policy) => canSubmitPerDiemExpenseFromWorkspace(policy));
-
-        return availableWorkspaces
-            .sort((policy1, policy2) =>
-                sortWorkspacesBySelected(
-                    {policyID: policy1.id, name: policy1.name},
-                    {policyID: policy2.id, name: policy2.name},
-                    selectedWorkspace?.policyID ? [selectedWorkspace?.policyID] : [],
-                    localeCompare,
-                ),
-            )
-            .map((policy) => ({
-                text: policy.name,
-                value: policy.id,
-                keyForList: policy.id,
-                icons: [
-                    {
-                        id: policy.id,
-                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                        name: policy.name,
-                        type: CONST.ICON_TYPE_WORKSPACE,
-                    },
-                ],
-                isSelected: selectedWorkspace?.policyID === policy.id,
-            }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare]);
-
-    const selectWorkspace = (item: WorkspaceListItem) => {
-        const policyExpenseReportID = getPolicyExpenseChat(accountID, item.value)?.reportID;
-        if (!policyExpenseReportID) {
-            return;
-        }
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
-        const selectedPolicy = getPolicy(item.value, allPolicies);
-        const perDiemUnit = getPerDiemCustomUnit(selectedPolicy);
-        setMoneyRequestParticipants(transactionID, [
-            {
-                selected: true,
-                accountID: 0,
-                isPolicyExpenseChat: true,
-                reportID: policyExpenseReportID,
-                policyID: item.value,
+const IOURequestStepPerDiemWorkspace = forwardRef<IOURequestStepPerDiemWorkspaceRef, IOURequestStepPerDiemWorkspaceProps>(
+    (
+        {
+            route: {
+                params: {transactionID, action, iouType},
             },
-        ]);
-        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, policyExpenseReportID));
-    };
+            transaction,
+        },
+        ref,
+    ) => {
+        const {translate, localeCompare} = useLocalize();
+        const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
+        const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+        const selectionListRef = useRef<SelectionListHandle | null>(null);
+        const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
 
-    return (
-        <SelectionList
-            key={selectedWorkspace?.policyID}
-            sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
-            onSelectRow={selectWorkspace}
-            shouldSingleExecuteRowSelect
-            ListItem={UserListItem}
-            initiallyFocusedOptionKey={selectedWorkspace?.policyID}
-        />
-    );
-}
+        const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
+            const availableWorkspaces = getActivePolicies(allPolicies, currentUserLogin).filter((policy) => canSubmitPerDiemExpenseFromWorkspace(policy));
 
-IOURequestStepPerDiemWorkspace.displayName = 'IOURequestStepPerDiemWorkspace';
+            return availableWorkspaces
+                .sort((policy1, policy2) =>
+                    sortWorkspacesBySelected(
+                        {policyID: policy1.id, name: policy1.name},
+                        {policyID: policy2.id, name: policy2.name},
+                        selectedWorkspace?.policyID ? [selectedWorkspace?.policyID] : [],
+                        localeCompare,
+                    ),
+                )
+                .map((policy) => ({
+                    text: policy.name,
+                    value: policy.id,
+                    keyForList: policy.id,
+                    icons: [
+                        {
+                            id: policy.id,
+                            source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                            fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                            name: policy.name,
+                            type: CONST.ICON_TYPE_WORKSPACE,
+                        },
+                    ],
+                    isSelected: selectedWorkspace?.policyID === policy.id,
+                }));
+        }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare]);
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepPerDiemWorkspace));
+        const selectWorkspace = (item: WorkspaceListItem) => {
+            const policyExpenseReportID = getPolicyExpenseChat(accountID, item.value)?.reportID;
+            if (!policyExpenseReportID) {
+                return;
+            }
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
+            const selectedPolicy = getPolicy(item.value, allPolicies);
+            const perDiemUnit = getPerDiemCustomUnit(selectedPolicy);
+            setMoneyRequestParticipants(transactionID, [
+                {
+                    selected: true,
+                    accountID: 0,
+                    isPolicyExpenseChat: true,
+                    reportID: policyExpenseReportID,
+                    policyID: item.value,
+                },
+            ]);
+            setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+            setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, policyExpenseReportID));
+        };
+
+        useImperativeHandle(ref, () => ({
+            focus: selectionListRef.current?.focusTextInput,
+        }));
+
+        return (
+            <SelectionList
+                ref={selectionListRef}
+                key={selectedWorkspace?.policyID}
+                sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
+                onSelectRow={selectWorkspace}
+                shouldSingleExecuteRowSelect
+                ListItem={UserListItem}
+                initiallyFocusedOptionKey={selectedWorkspace?.policyID}
+                textInputAutoFocus={false}
+            />
+        );
+    },
+);
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepPerDiemWorkspaceWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepPerDiemWorkspace);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepPerDiemWorkspaceWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepPerDiemWorkspaceWithFullTransactionOrNotFound);
+
+IOURequestStepPerDiemWorkspaceWithWritableReportOrNotFound.displayName = 'IOURequestStepPerDiemWorkspace';
+
+export default IOURequestStepPerDiemWorkspaceWithWritableReportOrNotFound;
+export type {IOURequestStepPerDiemWorkspaceRef};

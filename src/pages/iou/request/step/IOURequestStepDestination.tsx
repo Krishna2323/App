@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {forwardRef, useImperativeHandle, useRef} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -6,7 +6,7 @@ import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -46,138 +46,155 @@ type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof S
         explicitPolicyID?: string;
     };
 
-function IOURequestStepDestination({
-    report,
-    route: {
-        params: {transactionID, backTo, action, iouType, reportID},
-    },
-    transaction,
-    openedFromStartPage = false,
-    explicitPolicyID,
-}: IOURequestStepDestinationProps) {
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
-    const {accountID} = useCurrentUserPersonalDetails();
-    const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
-    const {top} = useSafeAreaInsets();
-    const customUnit = getPerDiemCustomUnit(policy);
-    const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
+type IOURequestStepDestinationRef = {
+    focus?: () => void;
+};
 
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
+const IOURequestStepDestination = forwardRef<IOURequestStepDestinationRef, IOURequestStepDestinationProps>(
+    (
+        {
+            report,
+            route: {
+                params: {transactionID, backTo, action, iouType, reportID},
+            },
+            transaction,
+            openedFromStartPage = false,
+            explicitPolicyID,
+        },
+        ref,
+    ) => {
+        const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
+        const {accountID} = useCurrentUserPersonalDetails();
+        const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
+        const {top} = useSafeAreaInsets();
+        const customUnit = getPerDiemCustomUnit(policy);
+        const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
+        const selectionListRef = useRef<SelectionListHandle | null>(null);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEmptyObject(policy);
+        const styles = useThemeStyles();
+        const theme = useTheme();
+        const {translate} = useLocalize();
 
-    const {isOffline} = useNetwork();
-    const isLoading = !isOffline && isLoadingOnyxValue(policyMetadata);
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
-    const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
+        // eslint-disable-next-line rulesdir/no-negated-variables
+        const shouldShowNotFoundPage = isEmptyObject(policy);
 
-    const navigateBack = () => {
-        Navigation.goBack(backTo);
-    };
+        const {isOffline} = useNetwork();
+        const isLoading = !isOffline && isLoadingOnyxValue(policyMetadata);
+        const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
+        const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
-    const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (isEmptyObject(customUnit)) {
-            return;
-        }
-        if (selectedDestination !== destination.keyForList) {
-            if (openedFromStartPage) {
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
-                setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
+        const navigateBack = () => {
+            Navigation.goBack(backTo);
+        };
+
+        const updateDestination = (destination: ListItem & {currency: string}) => {
+            if (isEmptyObject(customUnit)) {
+                return;
             }
-            setCustomUnitRateID(transactionID, destination.keyForList ?? '');
-            setMoneyRequestCurrency(transactionID, destination.currency);
-            clearSubrates(transactionID);
-        }
+            if (selectedDestination !== destination.keyForList) {
+                if (openedFromStartPage) {
+                    setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
+                    setCustomUnitID(transactionID, customUnit.customUnitID);
+                    setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
+                }
+                setCustomUnitRateID(transactionID, destination.keyForList ?? '');
+                setMoneyRequestCurrency(transactionID, destination.currency);
+                clearSubrates(transactionID);
+            }
 
-        if (backTo) {
-            navigateBack();
-        } else if (explicitPolicyID && transaction?.isFromGlobalCreate) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
-        } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
-        }
-    };
+            if (backTo) {
+                navigateBack();
+            } else if (explicitPolicyID && transaction?.isFromGlobalCreate) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
+            }
+        };
 
-    const tabTitles = {
-        [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
-        [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
-        [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
-    };
+        const tabTitles = {
+            [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
+            [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
+            [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
+            [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
+            [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
+            [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
+            [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
+            [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
+            [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
+        };
 
-    return (
-        <ScreenWrapper
-            includePaddingTop={false}
-            keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
-            testID={`${IOURequestStepDestination.displayName}-container`}
-        >
-            <StepScreenWrapper
-                headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
-                onBackButtonPress={navigateBack}
-                shouldShowWrapper={!openedFromStartPage}
-                shouldShowNotFoundPage={shouldShowNotFoundPage}
-                testID={IOURequestStepDestination.displayName}
+        useImperativeHandle(ref, () => ({
+            focus: selectionListRef.current?.focusTextInput,
+        }));
+
+        return (
+            <ScreenWrapper
+                includePaddingTop={false}
+                keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+                testID="IOURequestStepDestination-container"
             >
-                {isLoading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        color={theme.spinner}
-                    />
-                )}
-                {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
-                {shouldShowEmptyState && (
-                    <View style={[styles.flex1]}>
-                        <WorkspaceEmptyStateSection
-                            shouldStyleAsCard={false}
-                            icon={Illustrations.EmptyStateExpenses}
-                            title={translate('workspace.perDiem.emptyList.title')}
-                            subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                <StepScreenWrapper
+                    headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
+                    onBackButtonPress={navigateBack}
+                    shouldShowWrapper={!openedFromStartPage}
+                    shouldShowNotFoundPage={shouldShowNotFoundPage}
+                    testID="IOURequestStepDestination"
+                >
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
                         />
-                        {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
-                            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                                <Button
-                                    large
-                                    success
-                                    style={[styles.w100]}
-                                    onPress={() => {
-                                        InteractionManager.runAfterInteractions(() => {
-                                            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
-                                        });
-                                    }}
-                                    text={translate('workspace.perDiem.editPerDiemRates')}
-                                    pressOnEnter
-                                />
-                            </FixedFooter>
-                        )}
-                    </View>
-                )}
-                {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
-                    <DestinationPicker
-                        selectedDestination={selectedDestination}
-                        policyID={policy.id}
-                        onSubmit={updateDestination}
-                    />
-                )}
-            </StepScreenWrapper>
-        </ScreenWrapper>
-    );
-}
+                    )}
+                    {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
+                    {shouldShowEmptyState && (
+                        <View style={[styles.flex1]}>
+                            <WorkspaceEmptyStateSection
+                                shouldStyleAsCard={false}
+                                icon={Illustrations.EmptyStateExpenses}
+                                title={translate('workspace.perDiem.emptyList.title')}
+                                subtitle={translate('workspace.perDiem.emptyList.subtitle')}
+                                containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                            />
+                            {isPolicyAdmin(policy) && !!policy?.areCategoriesEnabled && (
+                                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                                    <Button
+                                        large
+                                        success
+                                        style={[styles.w100]}
+                                        onPress={() => {
+                                            InteractionManager.runAfterInteractions(() => {
+                                                Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
+                                            });
+                                        }}
+                                        text={translate('workspace.perDiem.editPerDiemRates')}
+                                        pressOnEnter
+                                    />
+                                </FixedFooter>
+                            )}
+                        </View>
+                    )}
+                    {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
+                        <DestinationPicker
+                            ref={selectionListRef}
+                            selectedDestination={selectedDestination}
+                            policyID={policy.id}
+                            onSubmit={updateDestination}
+                        />
+                    )}
+                </StepScreenWrapper>
+            </ScreenWrapper>
+        );
+    },
+);
 
-IOURequestStepDestination.displayName = 'IOURequestStepDestination';
-
-/* eslint-disable rulesdir/no-negated-variables */
+// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDestination);
-/* eslint-disable rulesdir/no-negated-variables */
+// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDestinationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDestinationWithFullTransactionOrNotFound);
+
+IOURequestStepDestinationWithWritableReportOrNotFound.displayName = 'IOURequestStepDestination';
+
 export default IOURequestStepDestinationWithWritableReportOrNotFound;
+export type {IOURequestStepDestinationRef};

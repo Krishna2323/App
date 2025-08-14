@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {forwardRef, useMemo} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem} from './SelectionList/types';
+import type {ListItem, SelectionListHandle} from './SelectionList/types';
 
 type DestinationPickerProps = {
     policyID: string;
@@ -19,7 +19,7 @@ type DestinationPickerProps = {
     onSubmit: (item: ListItem & {currency: string}) => void;
 };
 
-function DestinationPicker({selectedDestination, policyID, onSubmit}: DestinationPickerProps) {
+const DestinationPicker = forwardRef<SelectionListHandle, DestinationPickerProps>(({selectedDestination, policyID, onSubmit}, ref) => {
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
     const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
@@ -72,6 +72,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
 
     return (
         <SelectionList
+            ref={ref}
             sections={sections}
             headerMessage={headerMessage}
             textInputValue={searchValue}
@@ -82,10 +83,9 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             shouldHideKeyboardOnScroll={false}
+            textInputAutoFocus={false}
         />
     );
-}
-
-DestinationPicker.displayName = 'DestinationPicker';
+});
 
 export default DestinationPicker;

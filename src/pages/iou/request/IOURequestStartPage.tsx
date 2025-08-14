@@ -1,12 +1,13 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -34,8 +35,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDestination from './step/IOURequestStepDestination';
+import type {IOURequestStepDestinationRef} from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
+import type {IOURequestStepPerDiemWorkspaceRef} from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
@@ -56,6 +59,9 @@ function IOURequestStartPage({
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const amountInputRef = useRef<BaseTextInputRef | null>(null);
+    const perDiemWorkspaceInputRef = useRef<IOURequestStepPerDiemWorkspaceRef | null>(null);
+    const destinationInputRef = useRef<IOURequestStepDestinationRef | null>(null);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
@@ -191,6 +197,23 @@ function IOURequestStartPage({
         },
     );
 
+    // We're focusing the input using internal onPageSelected to fix input focus inconsistencies on native.
+    // More info: https://github.com/Expensify/App/issues/59388
+    const onTabSelectFocusHandler = ({index}: {index: number}) => {
+        // We runAfterInteractions since the function is called in the animate block on web-based
+        // implementation, this fixes an animation glitch and matches the native internal delay
+        InteractionManager.runAfterInteractions(() => {
+            // Manual tab (0) / Scan tab (1) / Distance tab (2) / Per Diem tab (3) according to OnyxTabNavigator
+            if (index === 0) {
+                amountInputRef.current?.focus();
+            } else if (index === 3 && shouldShowPerDiemOption && moreThanOnePerDiemExist && !doesCurrentPolicyPerDiemExist) {
+                perDiemWorkspaceInputRef.current?.focus?.();
+            } else if (index === 3 && shouldShowPerDiemOption) {
+                destinationInputRef.current?.focus?.();
+            }
+        });
+    };
+
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
@@ -234,6 +257,7 @@ function IOURequestStartPage({
                                 shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                                 renderProductTrainingTooltip={renderProductTrainingTooltip}
                                 lazyLoadEnabled
+                                onTabSelect={onTabSelectFocusHandler}
                                 // We're disabling swipe on mWeb fo the Per Diem tab because the keyboard will hang on the other tab after switching
                                 disableSwipe={(isMultiScanEnabled && selectedTab === CONST.TAB_REQUEST.SCAN) || (selectedTab === CONST.TAB_REQUEST.PER_DIEM && isMobile())}
                             >
@@ -244,6 +268,7 @@ function IOURequestStartPage({
                                                 shouldKeepUserInput
                                                 route={route}
                                                 navigation={navigation}
+                                                ref={amountInputRef}
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
@@ -283,6 +308,7 @@ function IOURequestStartPage({
                                                     <IOURequestStepPerDiemWorkspace
                                                         route={route}
                                                         navigation={navigation}
+                                                        ref={perDiemWorkspaceInputRef}
                                                     />
                                                 ) : (
                                                     <IOURequestStepDestination
@@ -290,6 +316,7 @@ function IOURequestStartPage({
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : perDiemCustomUnits.at(0)?.policyID}
                                                         route={route}
                                                         navigation={navigation}
+                                                        ref={destinationInputRef}
                                                     />
                                                 )}
                                             </TabScreenWithFocusTrapWrapper>
@@ -306,6 +333,7 @@ function IOURequestStartPage({
                                     route={route}
                                     navigation={navigation}
                                     shouldKeepUserInput
+                                    ref={amountInputRef}
                                 />
                             </FocusTrapContainerElement>
                         )}
