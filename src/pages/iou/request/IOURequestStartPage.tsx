@@ -35,7 +35,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDestination from './step/IOURequestStepDestination';
-import type {IOURequestStepDestinationRef} from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import type {IOURequestStepPerDiemWorkspaceRef} from './step/IOURequestStepPerDiemWorkspace';
@@ -61,7 +60,7 @@ function IOURequestStartPage({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const perDiemWorkspaceInputRef = useRef<IOURequestStepPerDiemWorkspaceRef | null>(null);
-    const destinationInputRef = useRef<IOURequestStepDestinationRef | null>(null);
+    const destinationInputRef = useRef<IOURequestStepPerDiemWorkspaceRef | null>(null);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);

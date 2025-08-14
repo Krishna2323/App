@@ -197,4 +197,3 @@ const IOURequestStepDestinationWithWritableReportOrNotFound = withWritableReport
 IOURequestStepDestinationWithWritableReportOrNotFound.displayName = 'IOURequestStepDestination';
 
 export default IOURequestStepDestinationWithWritableReportOrNotFound;
-export type {IOURequestStepDestinationRef};
