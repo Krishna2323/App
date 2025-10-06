@@ -74,7 +74,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
     const [lastWorkspacesTabNavigatorRoute, setLastWorkspacesTabNavigatorRoute] = useState(initialNavigationRouteState.lastWorkspacesTabNavigatorRoute);
     const [workspacesTabState, setWorkspacesTabState] = useState(initialNavigationRouteState.workspacesTabState);
     const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, isSuggestedSearchAccessReady} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
 
     const [lastViewedPolicy] = useOnyx(
@@ -149,11 +149,21 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                 }
             }
 
-            const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+            // Prefer Approve when ready; else Submit; else fall back to previous heuristic
+            let preferredQuery: string | undefined;
+
+            if (isSuggestedSearchAccessReady) {
+                const flattened = typeMenuSections.flatMap((section) => section.menuItems);
+                const approve = flattened.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE)?.searchQuery;
+                const submit = flattened.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT)?.searchQuery;
+                preferredQuery = approve ?? submit;
+            }
+
+            const nonExploreTypeQuery = preferredQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
             const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
-    }, [selectedTab, typeMenuSections, savedSearches]);
+    }, [selectedTab, typeMenuSections, savedSearches, isSuggestedSearchAccessReady]);
 
     const navigateToSettings = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {

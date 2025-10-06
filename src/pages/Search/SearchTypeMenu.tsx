@@ -9,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
@@ -47,7 +48,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, isSuggestedSearchAccessReady} = useSearchTypeMenuSections();
     const isFocused = useIsFocused();
     const {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
@@ -208,6 +209,18 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
         return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
     }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
+
+    // If we don't have enough data to properly determine suggested searches, show a lightweight skeleton
+    if (!isSuggestedSearchAccessReady) {
+        return (
+            <View style={[styles.pb4, styles.mh3]}>
+                <OptionsListSkeletonView
+                    fixedNumItems={6}
+                    speed={1.2}
+                />
+            </View>
+        );
+    }
 
     return (
         <ScrollView
