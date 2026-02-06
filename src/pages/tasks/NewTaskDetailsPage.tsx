@@ -32,6 +32,8 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, {canBeMissing: true}, [task?.parentReportID]);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
@@ -88,6 +90,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 isCreatedUsingMarkdown: false,
                 quickAction,
                 ancestors,
+                accountDelegateEmail,
             });
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));

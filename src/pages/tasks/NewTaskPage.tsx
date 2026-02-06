@@ -36,6 +36,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails);
@@ -109,6 +111,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
             isCreatedUsingMarkdown: false,
             quickAction,
             ancestors,
+            accountDelegateEmail,
         });
     };
 

@@ -1728,6 +1728,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
             return waitForBatchedUpdates()
                 .then(
@@ -1986,6 +1987,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
+                        accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2216,7 +2218,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},      accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -2383,7 +2385,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
             return (
                 waitForBatchedUpdates()
@@ -2901,7 +2903,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2931,7 +2933,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -2961,7 +2963,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: true,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -3010,7 +3012,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: 'existing@example.com',
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -3052,7 +3054,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -3120,7 +3122,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
             waitForBatchedUpdates();
 
@@ -3186,7 +3188,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 personalDetails: testPersonalDetails,
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],      accountDelegateEmail: '',
             });
 
             expect(iouReport).toBeDefined();
@@ -3256,7 +3258,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                personalDetails: testPersonalDetails,
+                personalDetails: testPersonalDetails,      accountDelegateEmail: '',
                 betas: [CONST.BETAS.ALL],
             });
 
@@ -3293,7 +3295,7 @@ describe('actions/IOU', () => {
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,      accountDelegateEmail: '',
                 currentUserEmailParam: RORY_EMAIL,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -3454,7 +3456,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 isSelfTourViewed: false,
                 personalDetails: {},
-                betas: [CONST.BETAS.ALL],
+                betas: [CONST.BETAS.ALL],      accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -3518,7 +3520,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         isSelfTourViewed: false,
                         betas: [CONST.BETAS.ALL],
-                        personalDetails: {},
+                        personalDetails: {},      accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3601,7 +3603,7 @@ describe('actions/IOU', () => {
                         currentUserEmailParam: 'existing@example.com',
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
-                        isSelfTourViewed: false,
+                        isSelfTourViewed: false,      accountDelegateEmail: '',
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
                     });
@@ -3679,7 +3681,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         isSelfTourViewed: false,
                         betas: [CONST.BETAS.ALL],
-                        personalDetails: {},
+                        personalDetails: {},      accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3750,7 +3752,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         isSelfTourViewed: false,
                         betas: [CONST.BETAS.ALL],
-                        personalDetails: {},
+                        personalDetails: {},      accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3822,7 +3824,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         isSelfTourViewed: false,
                         betas: [CONST.BETAS.ALL],
-                        personalDetails: {},
+                        personalDetails: {},      accountDelegateEmail: '',
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6086,7 +6088,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
             return waitForBatchedUpdates()
                 .then(
@@ -6343,7 +6345,7 @@ describe('actions/IOU', () => {
                             policyRecentlyUsedCurrencies: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
-                            betas: [CONST.BETAS.ALL],
+                            betas: [CONST.BETAS.ALL],      accountDelegateEmail: '',
                             personalDetails: {},
                         });
                     }
@@ -6496,7 +6498,7 @@ describe('actions/IOU', () => {
                             policyRecentlyUsedCurrencies: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
-                            betas: [CONST.BETAS.ALL],
+                            betas: [CONST.BETAS.ALL],      accountDelegateEmail: '',
                             personalDetails: {},
                         });
                     }
@@ -6853,6 +6855,7 @@ describe('actions/IOU', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6971,6 +6974,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -7220,6 +7224,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -7806,6 +7811,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    accountDelegateEmail: '',
                 });
             }
 
@@ -7883,7 +7889,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
             await waitForBatchedUpdates();
 
@@ -8299,7 +8305,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},      accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -8429,7 +8435,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},      accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -8502,7 +8508,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [],
-                            personalDetails: {},
+                            personalDetails: {},      accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -8701,7 +8707,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [],
-                            personalDetails: {},
+                            personalDetails: {},      accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -8873,7 +8879,7 @@ describe('actions/IOU', () => {
                             isSelfTourViewed: false,
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
-                            personalDetails: {},
+                            personalDetails: {},      accountDelegateEmail: '',
                         });
                     }
                     return waitForBatchedUpdates();
@@ -9550,7 +9556,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
+                personalDetails: {},      accountDelegateEmail: '',
             });
 
             await waitForBatchedUpdates();
@@ -10589,7 +10595,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},      accountDelegateEmail: '',
                 });
             }
             await waitForBatchedUpdates();
@@ -10687,7 +10693,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},      accountDelegateEmail: '',
                 });
             }
             await waitForBatchedUpdates();
@@ -11612,7 +11618,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},      accountDelegateEmail: '',
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -11774,7 +11780,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},      accountDelegateEmail: '',
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -11940,7 +11946,7 @@ describe('actions/IOU', () => {
                     policyRecentlyUsedCurrencies: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
+                    betas: [CONST.BETAS.ALL],      accountDelegateEmail: '',
                     personalDetails: {},
                 });
                 await waitForBatchedUpdates();
@@ -12118,7 +12124,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
-                    personalDetails: {},
+                    personalDetails: {},      accountDelegateEmail: '',
                 });
                 await waitForBatchedUpdates();
 

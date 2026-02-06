@@ -60,6 +60,7 @@ type CreateTransactionParams = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    accountDelegateEmail: string;
 };
 
 type InitialTransactionParams = {
@@ -104,6 +105,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     selfDMReport: OnyxEntry<Report>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
+    accountDelegateEmail: string;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -166,6 +168,7 @@ function createTransaction({
     isSelfTourViewed,
     betas,
     personalDetails,
+    accountDelegateEmail,
 }: CreateTransactionParams) {
     const recentWaypoints = getRecentWaypoints();
 
@@ -235,6 +238,7 @@ function createTransaction({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 isSelfTourViewed,
                 personalDetails,
+                accountDelegateEmail,
             });
         }
     }
@@ -289,6 +293,7 @@ function handleMoneyRequestStepScanParticipants({
     selfDMReport,
     isSelfTourViewed,
     betas,
+    accountDelegateEmail,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -392,6 +397,7 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            accountDelegateEmail,
                         });
                     },
                     (errorData) => {
@@ -417,6 +423,7 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            accountDelegateEmail,
                         });
                     },
                 );
@@ -442,6 +449,7 @@ function handleMoneyRequestStepScanParticipants({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                accountDelegateEmail,
             });
             return;
         }

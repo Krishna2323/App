@@ -159,6 +159,8 @@ function IOURequestStepConfirmation({
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -633,6 +635,7 @@ function IOURequestStepConfirmation({
                     quickAction,
                     isSelfTourViewed,
                     betas,
+                    accountDelegateEmail,
                     personalDetails,
                 });
                 existingIOUReport = iouReport;
@@ -671,6 +674,7 @@ function IOURequestStepConfirmation({
             isSelfTourViewed,
             betas,
             personalDetails,
+            accountDelegateEmail
         ],
     );
 

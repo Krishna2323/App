@@ -104,6 +104,8 @@ function IOURequestStepAmount({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
@@ -270,6 +272,7 @@ function IOURequestStepAmount({
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         isSelfTourViewed,
                         personalDetails,
+                        accountDelegateEmail,
                     });
                     return;
                 }

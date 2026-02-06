@@ -333,6 +333,8 @@ function MoneyReportHeader({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const isDEWPolicy = isDEWBetaEnabled && hasDynamicExternalWorkflow(policy);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
@@ -702,6 +704,7 @@ function MoneyReportHeader({
                     targetReport: activePolicyExpenseChat,
                     betas,
                     personalDetails,
+                    accountDelegateEmail,
                 });
             }
         },
@@ -718,6 +721,7 @@ function MoneyReportHeader({
             isSelfTourViewed,
             betas,
             personalDetails,
+            accountDelegateEmail
         ],
     );
 

@@ -87,7 +87,8 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector: hasOnlyPersonalPoliciesUtil});
     const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
-
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
             return;
@@ -204,6 +205,7 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                accountDelegateEmail,
             });
         }
     };

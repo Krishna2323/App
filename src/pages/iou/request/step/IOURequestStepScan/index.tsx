@@ -120,6 +120,8 @@ function IOURequestStepScan({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
 
@@ -350,6 +352,7 @@ function IOURequestStepScan({
                 policyForMovingExpenses,
                 isSelfTourViewed,
                 betas,
+                accountDelegateEmail,
             });
         },
         [
@@ -387,6 +390,7 @@ function IOURequestStepScan({
             policyForMovingExpenses,
             isSelfTourViewed,
             betas,
+            accountDelegateEmail,
         ],
     );
 

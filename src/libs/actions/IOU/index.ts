@@ -560,6 +560,7 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    accountDelegateEmail: string;
 };
 
 type MoneyRequestInformationParams = {
@@ -6455,6 +6456,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isSelfTourViewed,
         betas,
         personalDetails,
+        accountDelegateEmail,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6631,8 +6633,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       introSelected: {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
                       engagementChoice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
-                      companySize: undefined,
+                      companySize: undefined,   
                       isSelfTourViewed,
+                      accountDelegateEmail,
                   })?.guidedSetupData
                 : undefined;
 

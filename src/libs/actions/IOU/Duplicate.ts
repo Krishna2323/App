@@ -461,7 +461,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
 }
 
-type DuplicateExpenseTransactionParams = {
+type    DuplicateExpenseTransactionParams = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     optimisticChatReportID: string;
     optimisticIOUReportID: string;
@@ -477,6 +477,7 @@ type DuplicateExpenseTransactionParams = {
     targetReport?: OnyxTypes.Report;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    accountDelegateEmail: string;
 };
 
 function duplicateExpenseTransaction({
@@ -495,6 +496,7 @@ function duplicateExpenseTransaction({
     targetReport,
     betas,
     personalDetails,
+    accountDelegateEmail,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -550,6 +552,7 @@ function duplicateExpenseTransaction({
         isSelfTourViewed,
         betas,
         personalDetails,
+        accountDelegateEmail,
     };
 
     // If no workspace is provided the expense should be unreported

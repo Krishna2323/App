@@ -94,6 +94,7 @@ describe('MoneyRequest', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            accountDelegateEmail: '',
         };
 
         afterEach(() => {
@@ -302,6 +303,7 @@ describe('MoneyRequest', () => {
             selfDMReport,
             isSelfTourViewed: false,
             betas: [],
+            accountDelegateEmail: '',
         };
 
         beforeEach(async () => {

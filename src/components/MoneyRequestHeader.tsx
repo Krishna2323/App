@@ -178,6 +178,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const accountDelegateEmail = account?.delegatedAccess?.delegate ?? '';
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
     }, [reportID, transaction?.transactionID, transactionViolations]);
@@ -210,6 +212,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     targetReport: activePolicyExpenseChat,
                     betas,
                     personalDetails,
+                    accountDelegateEmail,
                 });
             }
         },
@@ -226,6 +229,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             isSelfTourViewed,
             betas,
             personalDetails,
+            accountDelegateEmail,
         ],
     );
 

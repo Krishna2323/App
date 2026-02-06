@@ -56,6 +56,7 @@ type CreateTaskAndNavigateParams = {
     isCreatedUsingMarkdown?: boolean;
     quickAction?: OnyxEntry<OnyxTypes.QuickAction>;
     ancestors?: ReportUtils.Ancestor[];
+    accountDelegateEmail: string;
 };
 
 /**
@@ -98,6 +99,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         isCreatedUsingMarkdown = false,
         quickAction = {},
         ancestors = [],
+        accountDelegateEmail,
     } = params;
     const parentReportID = parentReport?.reportID;
     if (!parentReportID) {
@@ -112,7 +114,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
 
     // Parent ReportAction indicating that a task has been created
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID, accountDelegateEmail);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = NetworkConnection.getDBTimeWithSkew();
