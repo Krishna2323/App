@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {accountGuideDetailsSelector} from '@selectors/Account';
+import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
 import React, {useMemo} from 'react';
@@ -231,7 +232,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const otherParticipantAccountID = Object.keys(report?.participants ?? {})
         .map(Number)
         .find((id) => id !== currentUserAccountID);
-    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, personalDetails?.[otherParticipantAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isPersonalDetailOptimistic(personalDetails?.[otherParticipantAccountID ?? CONST.DEFAULT_NUMBER_ID]));
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
     const isParentReportLoading = !!report?.parentReportID && !parentReport;

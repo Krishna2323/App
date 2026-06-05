@@ -131,7 +131,6 @@ import {
     isDeprecatedGroupDM,
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
-    isOptimisticPersonalDetail,
     isPayer,
     isReportIneligibleForMoveExpenses,
     isReportOutstanding,
@@ -17335,32 +17334,6 @@ describe('ReportUtils', () => {
 
             expect(hasSmartscanError([splitAction], chatReport, allTransactions)).toBe(false);
             expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions)).toBeUndefined();
-        });
-    });
-
-    describe('isOptimisticPersonalDetail uses explicit personalDetail', () => {
-        it('should use the passed personalDetail instead of the module-level variable', () => {
-            const testAccountID = 99999;
-            const personalDetail: PersonalDetails = {
-                accountID: testAccountID,
-                login: 'test@example.com',
-                displayName: 'Test User',
-                isOptimisticPersonalDetail: false,
-            };
-
-            expect(isOptimisticPersonalDetail(testAccountID, personalDetail)).toBe(false);
-            expect(isOptimisticPersonalDetail(testAccountID, undefined)).toBe(true);
-        });
-
-        it('should return true when the account has isOptimisticPersonalDetail flag', () => {
-            const testAccountID = 88888;
-            const personalDetail: PersonalDetails = {
-                accountID: testAccountID,
-                login: 'optimistic@example.com',
-                isOptimisticPersonalDetail: true,
-            };
-
-            expect(isOptimisticPersonalDetail(testAccountID, personalDetail)).toBe(true);
         });
     });
 

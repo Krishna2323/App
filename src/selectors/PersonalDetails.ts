@@ -1,7 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+function isPersonalDetailOptimistic(personalDetail: PersonalDetails | null | undefined): boolean {
+    return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
+}
 
 const personalDetailsSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID];
 
@@ -19,8 +23,7 @@ const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetail
 };
 
 const isOptimisticPersonalDetailSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
-    const personalDetail = personalDetailsList?.[accountID];
-    return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
+    return isPersonalDetailOptimistic(personalDetailsList?.[accountID]);
 };
 
-export {personalDetailsSelector, personalDetailsLoginSelector, accountIDToLoginSelector, isOptimisticPersonalDetailSelector};
+export {personalDetailsSelector, personalDetailsLoginSelector, accountIDToLoginSelector, isOptimisticPersonalDetailSelector, isPersonalDetailOptimistic};
