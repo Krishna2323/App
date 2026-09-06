@@ -50,7 +50,12 @@ type MerchantRuleSuggestionBannerProps = {
     isAnchoredToBottom?: boolean;
 };
 
-function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
+type MerchantRuleSuggestionBannerContentProps = MerchantRuleSuggestionBannerProps & {
+    /** Whether the composer is expanded, which leaves no room for the callout */
+    isComposerFullSize: boolean;
+};
+
+function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyles, overlayStyles, isAnchoredToBottom, isComposerFullSize}: MerchantRuleSuggestionBannerContentProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -90,38 +95,44 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
 
     // Slides out of the edge it is pinned to rather than popping. FloatingMessageCounter springs a parked view
     // instead, which this cannot do because it unmounts when there is nothing to offer.
+    //
+    // The composer check sits inside rather than around this wrapper on purpose. Expanding the composer should take
+    // the callout away at once, and unmounting the wrapper would instead play the exit animation over the composer
+    // as it grows. Emptying it leaves nothing to see while keeping the animation for an actual dismissal.
     return (
         <Animated.View
             style={overlayStyles}
             entering={isAnchoredToBottom ? FadeInDown : FadeInUp}
             exiting={isAnchoredToBottom ? FadeOutDown : FadeOutUp}
         >
-            <Banner
-                containerStyles={[styles.merchantRuleCalloutContainer, styles.p4, containerStyles]}
-                shouldShowCloseButton
-                onClose={dismiss}
-                content={
-                    <>
-                        <View style={styles.mr3}>
-                            <Icon
-                                src={icons.Lightbulb}
-                                fill={theme.tooltipHighlightText}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                        </View>
-                        <Text style={[styles.flex1, styles.merchantRuleCalloutText, styles.mr3]}>
-                            <TextLink
-                                style={styles.merchantRuleCalloutAction}
-                                onPress={createRule}
-                            >
-                                {translate('workspace.rules.merchantRules.createRuleFromExpenseAction')}
-                            </TextLink>
-                            {` ${translate('workspace.rules.merchantRules.createRuleFromExpensePrompt')}`}
-                        </Text>
-                    </>
-                }
-            />
+            {!isComposerFullSize && (
+                <Banner
+                    containerStyles={[styles.merchantRuleCalloutContainer, styles.p4, containerStyles]}
+                    shouldShowCloseButton
+                    onClose={dismiss}
+                    content={
+                        <>
+                            <View style={styles.mr3}>
+                                <Icon
+                                    src={icons.Lightbulb}
+                                    fill={theme.tooltipHighlightText}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                            </View>
+                            <Text style={[styles.flex1, styles.merchantRuleCalloutText, styles.mr3]}>
+                                <TextLink
+                                    style={styles.merchantRuleCalloutAction}
+                                    onPress={createRule}
+                                >
+                                    {translate('workspace.rules.merchantRules.createRuleFromExpenseAction')}
+                                </TextLink>
+                                {` ${translate('workspace.rules.merchantRules.createRuleFromExpensePrompt')}`}
+                            </Text>
+                        </>
+                    }
+                />
+            )}
         </Animated.View>
     );
 }
@@ -133,8 +144,9 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
 function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
     // A full-size composer leaves no room for the callout, and on narrow layouts it would sit over the button that
-    // collapses the composer again.
-    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+    // collapses the composer again. Handled inside the content rather than here, so the callout goes at once instead
+    // of animating out over the composer as it grows.
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     // A wide RHP reports a narrow layout but looks wide, so it belongs to the composer mount.
     const route = useRoute();
@@ -147,7 +159,7 @@ function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, over
 
     // Nothing is stored for most of a session, so skip the inner component and its Onyx subscriptions until there is
     // an edit to offer.
-    if (!isMountForThisLayout || isComposerFullSize || !isMerchantRuleSuggestionLive(storedSuggestion)) {
+    if (!isMountForThisLayout || !isMerchantRuleSuggestionLive(storedSuggestion)) {
         return null;
     }
 
@@ -158,6 +170,7 @@ function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, over
             containerStyles={containerStyles}
             overlayStyles={overlayStyles}
             isAnchoredToBottom={isAnchoredToBottom}
+            isComposerFullSize={isComposerFullSize}
         />
     );
 }
