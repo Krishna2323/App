@@ -1,5 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {ExpenseReportListItemType, SearchListItem, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {ExpenseReportListItemType, SearchListItem, TransactionListItemType, TransactionWithdrawalIDGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 
 import variables from '@styles/variables';
@@ -19,7 +19,7 @@ import getBase62ReportID from './getBase62ReportID';
 import {getTagGLCode} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {getReportStatusTranslation} from './ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from './SearchUIUtils';
+import {isTransactionListItemType, isTransactionReportGroupListItemType, isTransactionWithdrawalIDGroupListItemType} from './SearchUIUtils';
 import {getDecodedTagName} from './TagUtils';
 import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getTaxName, isDeletedTransaction, isPerDiemRequest, isTimeRequest} from './TransactionUtils';
 
@@ -99,6 +99,8 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
     CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
     CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
     CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
@@ -131,6 +133,8 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: 'common.longReportID',
     [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'common.reportID',
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'common.withdrawalID',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'common.bankAccount',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'common.withdrawalID',
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID]: 'workspace.common.customField1',
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID]: 'workspace.common.customField2',
     [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: 'common.internationalReimbursementIDs',
@@ -260,6 +264,23 @@ function getExpenseReportColumnContentToMeasure(column: SearchColumnType, item: 
 }
 
 /**
+ * Returns the text a withdrawal-ID group row renders for one column, which is the Bank reconciliation table's row.
+ */
+function getWithdrawalIDGroupColumnContentToMeasure(column: SearchColumnType, item: TransactionWithdrawalIDGroupListItemType): SearchColumnContent[] {
+    switch (column) {
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT: {
+            const bankName = CONST.BANK_NAMES_USER_FRIENDLY[item.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+
+            return [{text: `${bankName} ${item.accountNumber ? `xx${item.accountNumber.slice(-4)}` : ''}`}];
+        }
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
+            return [{text: item.entryID?.toString()}];
+        default:
+            return [];
+    }
+}
+
+/**
  * Returns the text a column renders for one row, whatever kind of row the table holds.
  *
  * Each kind reads its own fields, so a column measured for one is not measured the same way for another: a transaction's
@@ -272,6 +293,10 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchL
 
     if (isTransactionReportGroupListItemType(item)) {
         return getExpenseReportColumnContentToMeasure(column, item, translate);
+    }
+
+    if (isTransactionWithdrawalIDGroupListItemType(item)) {
+        return getWithdrawalIDGroupColumnContentToMeasure(column, item);
     }
 
     return [];

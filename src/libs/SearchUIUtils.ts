@@ -1363,6 +1363,13 @@ function isTransactionReportGroupListItemType(item: ListItem): item is Transacti
 }
 
 /**
+ * Type guard that checks if something is a TransactionWithdrawalIDGroupListItemType
+ */
+function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+}
+
+/**
  * Type guard that checks if something is a TransactionCategoryGroupListItemType
  */
 function isTransactionCategoryGroupListItemType(item: ListItem): item is TransactionCategoryGroupListItemType {
@@ -7248,6 +7255,7 @@ export {
     isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionTagGroupListItemType,
