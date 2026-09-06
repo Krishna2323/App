@@ -9,7 +9,7 @@ import type {TransactionMerchantGroupListItemType} from './types';
 
 import BaseListItemHeader from './BaseListItemHeader';
 
-type MerchantListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
+type MerchantListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey'> & {
     /** The merchant currently being looked at */
     merchant: TransactionMerchantGroupListItemType;
 };
@@ -33,7 +33,6 @@ function MerchantListItemHeader<TItem extends ListItem>({
             item={merchantItem}
             displayName={merchantName}
             groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT}
-            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.MERCHANT}
             onCheckboxPress={onCheckboxPress}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}

@@ -19,7 +19,18 @@ import getBase62ReportID from './getBase62ReportID';
 import {getTagGLCode} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {getReportStatusTranslation} from './ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType, isTransactionWithdrawalIDGroupListItemType} from './SearchUIUtils';
+import {
+    isTransactionCategoryGroupListItemType,
+    isTransactionListItemType,
+    isTransactionMerchantGroupListItemType,
+    isTransactionMonthGroupListItemType,
+    isTransactionQuarterGroupListItemType,
+    isTransactionReportGroupListItemType,
+    isTransactionTagGroupListItemType,
+    isTransactionWeekGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
+    isTransactionYearGroupListItemType,
+} from './SearchUIUtils';
 import {getDecodedTagName} from './TagUtils';
 import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getTaxName, isDeletedTransaction, isPerDiemRequest, isTimeRequest} from './TransactionUtils';
 
@@ -101,6 +112,13 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
     CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
@@ -135,6 +153,13 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'common.withdrawalID',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'common.bankAccount',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'common.withdrawalID',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]: 'common.category',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG]: 'common.tag',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT]: 'common.merchant',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: 'common.month',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]: 'common.week',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR]: 'common.year',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER]: 'common.quarter',
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID]: 'workspace.common.customField1',
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID]: 'workspace.common.customField2',
     [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: 'common.internationalReimbursementIDs',
@@ -281,6 +306,47 @@ function getWithdrawalIDGroupColumnContentToMeasure(column: SearchColumnType, it
 }
 
 /**
+ * Returns the name a group row renders in the column it is grouped by, for the groupings whose row is nothing more than
+ * that name: a category, a tag, a merchant, or a period.
+ *
+ * Returns `null` for a row that isn't one of those, so the caller can go on looking rather than treat it as empty.
+ */
+function getGroupNameColumnContentToMeasure(column: SearchColumnType, item: SearchListItem, translate: LocalizedTranslate): SearchColumnContent[] | null {
+    if (isTransactionCategoryGroupListItemType(item)) {
+        const category = item.formattedCategory ?? item.category;
+        const isUncategorized = !category || category === CONST.SEARCH.CATEGORY_EMPTY_VALUE;
+
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY ? [{text: isUncategorized ? translate('reportLayout.uncategorized') : category}] : [];
+    }
+
+    if (isTransactionTagGroupListItemType(item)) {
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG ? [{text: item.formattedTag ?? item.tag}] : [];
+    }
+
+    if (isTransactionMerchantGroupListItemType(item)) {
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT ? [{text: item.formattedMerchant ?? item.merchant}] : [];
+    }
+
+    if (isTransactionMonthGroupListItemType(item)) {
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH ? [{text: item.formattedMonth}] : [];
+    }
+
+    if (isTransactionWeekGroupListItemType(item)) {
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK ? [{text: item.formattedWeek}] : [];
+    }
+
+    if (isTransactionYearGroupListItemType(item)) {
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR ? [{text: item.formattedYear}] : [];
+    }
+
+    if (isTransactionQuarterGroupListItemType(item)) {
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER ? [{text: item.formattedQuarter}] : [];
+    }
+
+    return null;
+}
+
+/**
  * Returns the text a column renders for one row, whatever kind of row the table holds.
  *
  * Each kind reads its own fields, so a column measured for one is not measured the same way for another: a transaction's
@@ -299,7 +365,7 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchL
         return getWithdrawalIDGroupColumnContentToMeasure(column, item);
     }
 
-    return [];
+    return getGroupNameColumnContentToMeasure(column, item, translate) ?? [];
 }
 
 export default getSearchColumnContentToMeasure;

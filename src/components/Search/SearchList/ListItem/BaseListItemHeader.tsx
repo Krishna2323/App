@@ -1,11 +1,11 @@
 import Checkbox from '@components/Checkbox';
+import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -41,16 +41,6 @@ type GroupColumnKey =
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER;
 
-/** Supported column style keys for sizing */
-type ColumnStyleKey =
-    | typeof CONST.SEARCH.TABLE_COLUMNS.CATEGORY
-    | typeof CONST.SEARCH.TABLE_COLUMNS.MERCHANT
-    | typeof CONST.SEARCH.TABLE_COLUMNS.TAG
-    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH
-    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK
-    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR
-    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER;
-
 type BaseListItemHeaderProps<TItem extends ListItem> = {
     /** The group item being rendered */
     item: BaseGroupListItemType;
@@ -60,9 +50,6 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
 
     /** The column key for the group name column (e.g., GROUP_CATEGORY, GROUP_MERCHANT) */
     groupColumnKey: GroupColumnKey;
-
-    /** The column style key for sizing (e.g., CATEGORY, MERCHANT) */
-    columnStyleKey: ColumnStyleKey;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -97,7 +84,6 @@ function BaseListItemHeaderImpl({
     item,
     displayName,
     groupColumnKey,
-    columnStyleKey,
     onCheckboxPress,
     isDisabled,
     canSelectMultiple,
@@ -108,7 +94,7 @@ function BaseListItemHeaderImpl({
     columns,
 }: BaseListItemHeaderProps<ListItem>) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const getSearchColumnStyles = useSearchColumnStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
 
@@ -116,7 +102,7 @@ function BaseListItemHeaderImpl({
         [groupColumnKey]: (
             <View
                 key={groupColumnKey}
-                style={StyleUtils.getReportTableColumnStyles(columnStyleKey)}
+                style={getSearchColumnStyles(groupColumnKey)}
             >
                 <View style={[styles.gap1, styles.flexShrink1]}>
                     <TextWithTooltip
@@ -129,7 +115,7 @@ function BaseListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
+                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES)}
             >
                 <TextCell text={String(item.count)} />
             </View>
@@ -137,7 +123,7 @@ function BaseListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
+                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
                     total={item.total}
