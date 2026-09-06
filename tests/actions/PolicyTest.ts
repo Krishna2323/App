@@ -1531,9 +1531,8 @@ describe('actions/Policy', () => {
 
         it('should mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is true', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
-            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins), so the concierge
+            // chat is passed below and prepareOnboardingOnyxData does not early-return.
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
@@ -1545,7 +1544,7 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
-                conciergeChat: undefined,
+                conciergeChat: {reportID: 'concierge-report-1', type: CONST.REPORT.TYPE.CHAT},
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
@@ -1582,9 +1581,8 @@ describe('actions/Policy', () => {
 
         it('should not mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is false', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
-            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins), so the concierge
+            // chat is passed below and prepareOnboardingOnyxData does not early-return.
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
@@ -1596,7 +1594,7 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
-                conciergeChat: undefined,
+                conciergeChat: {reportID: 'concierge-report-1', type: CONST.REPORT.TYPE.CHAT},
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
