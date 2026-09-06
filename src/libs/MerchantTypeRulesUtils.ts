@@ -6,13 +6,14 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
-import type {Policy, Rule} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Rule} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
+import {getCategoryTaxRulesTableData} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {getExpenseDefaultRuleSummaryFields, getPolicyExpenseDefaultRules, getRuleFilterLeaves, isEditableMerchantRule, isExpenseDefaultTaxValue} from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
@@ -83,7 +84,7 @@ function getMerchantTypeRulesTableData({
             keyForList: getMerchantTypeRuleKey(groupID),
             ruleID: getMerchantTypeRuleKey(groupID),
             groupID,
-            isMerchantType: true,
+            section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES,
             isRename: false,
             isSelectionDisabled: true,
             typeLabel,
@@ -163,6 +164,7 @@ function getMerchantRulesTableData({
                 }
             }
             const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
+            const pendingAction = rule.pendingAction;
 
             // A rule the editor can't represent would lose whatever the form can't show if it were saved back,
             // so the row summarizes it but doesn't open it. See `getMerchantRuleFormValues`.
@@ -171,14 +173,14 @@ function getMerchantRulesTableData({
             return {
                 keyForList: ruleID,
                 ruleID,
-                isMerchantType: false,
+                section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
                 isRename: hasOnlyMerchantRename,
                 isSelectionDisabled: !isEditable,
                 typeLabel,
                 conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
                 ruleDescription,
                 searchTokens: [merchantName, ruleDescription],
-                pendingAction: rule.pendingAction,
+                pendingAction,
                 errors: rule.errors,
                 onCloseError: () => clearMerchantRuleErrors(ruleID, rule),
                 disabled: !isEditable || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -191,6 +193,7 @@ function getExpenseDefaultsTableData({
     policy,
     policyID,
     rules,
+    policyCategories,
     translate,
     isOffline,
     onNavigate,
@@ -198,14 +201,17 @@ function getExpenseDefaultsTableData({
     policy: Policy | undefined;
     policyID: string;
     rules: OnyxCollection<Rule> | undefined;
+    /** Read for the pending state of a category a rule depends on, so the rule shows as deleting alongside it. */
+    policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
+    const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, isOffline, onNavigate});
     const merchantRules = getMerchantRulesTableData({policy, policyID, rules, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
-    return [...merchantRules, ...merchantTypeRules];
+    return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];
 }
 
 export {
