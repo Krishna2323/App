@@ -100,7 +100,9 @@ function getMerchantRuleDraftFromTransaction(
         return undefined;
     }
 
-    const draft: Partial<MerchantRuleForm> = {merchantToMatch: getMerchant(transaction)};
+    // The callout only ever creates a merchant rule, so it names the type itself. Without it the editor bounces to the
+    // type chooser, which would drop the user a step back from where the callout promised to take them.
+    const draft: Partial<MerchantRuleForm> = {ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT, merchantToMatch: getMerchant(transaction)};
 
     // Each field sets a different property, so edit order does not matter.
     for (const field of fields) {
