@@ -32,6 +32,12 @@ type MerchantRuleSuggestion = {
     /** Expenses dismissed this session. Kept alongside the current offer, so a dismissal survives later edits. */
     dismissedTransactionIDs?: string[];
 
+    /**
+     * Whether the callout actually rendered. Set by the callout itself, since the report showing an expense is not
+     * always the one the edit was recorded against: a report holding a single expense shows the detail view too.
+     */
+    wasSeen?: boolean;
+
     /** Whether the offer was seen and left. Unlike dismissing, editing the expense again offers afresh. */
     isRetired?: boolean;
 };

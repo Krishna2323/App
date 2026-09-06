@@ -6,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearMerchantRuleSuggestionFields, dismissMerchantRuleSuggestion, retireMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
+import {clearMerchantRuleSuggestionFields, dismissMerchantRuleSuggestion, markMerchantRuleSuggestionSeen, retireMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
 import {setDraftMerchantRule} from '@libs/actions/User';
 import {getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -20,7 +20,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeInDown, FadeInUp, FadeOutDown, FadeOutUp} from 'react-native-reanimated';
 
@@ -56,6 +56,16 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {suggestion, fields, editedTagLevels, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
+    const isShowing = !!suggestion && !!policyID;
+
+    // Recorded so leaving the report can retire the offer. The report cannot work this out for itself, because the
+    // one showing an expense is not always the one the edit was recorded against.
+    useEffect(() => {
+        if (!isShowing || suggestion?.wasSeen) {
+            return;
+        }
+        markMerchantRuleSuggestionSeen();
+    }, [isShowing, suggestion?.wasSeen]);
 
     if (!suggestion || !policyID) {
         return null;

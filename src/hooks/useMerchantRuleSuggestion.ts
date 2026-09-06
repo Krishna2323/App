@@ -1,10 +1,11 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
+import {getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import {isMerchantMissing} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
@@ -62,13 +63,19 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const editedFields = suggestion ? suggestion.editedFields?.[suggestion.transactionID] : undefined;
     const fields = Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field]);
 
+    const editedTagLevels = suggestion?.editedTagLevels?.[suggestion.transactionID];
+    // Built here rather than only on press, so an offer that would apply nothing never appears. Clearing a field is
+    // still an edit worth recording, but the rule it would make sets that field to empty, which changes nothing.
+    const draft = suggestion && transaction ? getMerchantRuleDraftFromTransaction(transaction, fields, policy, editedTagLevels) : undefined;
+    const hasUpdatesToApply = !!draft && Object.keys(draft).some((key) => key !== INPUT_IDS.MERCHANT_TO_MATCH);
+
     // A rule matches on merchant, so an expense without one (a receipt still scanning) can't seed one. Nor can an
     // offer with nothing recorded, which is how an expense reads once its fields are cleared.
-    if (!suggestion || !transaction || isMerchantMissing(transaction) || fields.length === 0) {
+    if (!suggestion || !transaction || isMerchantMissing(transaction) || fields.length === 0 || !hasUpdatesToApply) {
         return {suggestion: undefined, fields: [], editedTagLevels: undefined, transaction: undefined, policy: undefined};
     }
 
-    return {suggestion, fields, editedTagLevels: suggestion.editedTagLevels?.[suggestion.transactionID], transaction, policy};
+    return {suggestion, fields, editedTagLevels, transaction, policy};
 }
 
 export default useMerchantRuleSuggestion;

@@ -40,8 +40,14 @@ function trackMerchantRuleSuggestion(
         editedFields: {[transactionID]: {[field]: true}},
         // Keyed by level so editing several levels of one tag accumulates, the same way fields do.
         ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, true]))}} : {}),
+        wasSeen: null,
         isRetired: null,
     });
+}
+
+/** Records that the callout rendered, which is what makes leaving the expense retire the offer. */
+function markMerchantRuleSuggestionSeen() {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {wasSeen: true});
 }
 
 /**
@@ -67,4 +73,4 @@ function retireMerchantRuleSuggestion() {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isRetired: true});
 }
 
-export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, retireMerchantRuleSuggestion, clearMerchantRuleSuggestionFields};
+export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, markMerchantRuleSuggestionSeen, retireMerchantRuleSuggestion, clearMerchantRuleSuggestionFields};
