@@ -15,10 +15,29 @@ import type {SearchColumnType} from './types';
  */
 type SearchColumnWidths = Partial<Record<SearchColumnType, SearchColumnSizing>>;
 
-const SearchColumnWidthsContext = createContext<SearchColumnWidths>({});
+type SearchColumnSizingState = {
+    /** What each measured column was sized to. */
+    columnWidths: SearchColumnWidths;
 
-function SearchColumnWidthsProvider({columnWidths, children}: React.PropsWithChildren<{columnWidths: SearchColumnWidths}>) {
-    return <SearchColumnWidthsContext.Provider value={columnWidths}>{children}</SearchColumnWidthsContext.Provider>;
+    /**
+     * The columns the sized table lays out, which is not every column rendered underneath it: a grouped table's rows can
+     * expand to show their transactions, and those inner rows have columns of their own that this sizing says nothing
+     * about. They are left exactly as they are styled.
+     */
+    sizedColumns: Set<SearchColumnType>;
+
+    /**
+     * Which columns take their wider variant across the whole table. A row that renders one of these columns without
+     * saying which variant it wants gets the table's answer, rather than defaulting to the narrow one and standing a
+     * column short of the heading above it.
+     */
+    columnOptions: GetReportTableColumnStylesParams;
+};
+
+const SearchColumnWidthsContext = createContext<SearchColumnSizingState>({columnWidths: {}, sizedColumns: new Set(), columnOptions: {}});
+
+function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, children}: React.PropsWithChildren<SearchColumnSizingState>) {
+    return <SearchColumnWidthsContext.Provider value={{columnWidths, sizedColumns, columnOptions}}>{children}</SearchColumnWidthsContext.Provider>;
 }
 
 /**
@@ -29,12 +48,14 @@ function SearchColumnWidthsProvider({columnWidths, children}: React.PropsWithChi
  */
 function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetReportTableColumnStylesParams) => ViewStyle {
     const StyleUtils = useStyleUtils();
-    const columnWidths = useContext(SearchColumnWidthsContext);
+    const {columnWidths, sizedColumns, columnOptions} = useContext(SearchColumnWidthsContext);
 
     const isSizingColumns = Object.keys(columnWidths).length > 0;
 
     return (columnName, options = {}) => {
-        const columnStyles = StyleUtils.getReportTableColumnStyles(columnName, options);
+        // Only for the table's own columns, and only where the caller didn't answer: an inner table rendered below this
+        // one sizes its columns from its own rows, and a caller that names a variant knows something this doesn't.
+        const columnStyles = StyleUtils.getReportTableColumnStyles(columnName, sizedColumns.has(columnName) ? {...columnOptions, ...options} : options);
         const sizing = columnWidths[columnName];
 
         if (!sizing) {
@@ -43,7 +64,10 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
             // That declared width is what it was sized to fit, so pin it there exactly. Not narrower, since a truncated
             // amount reads as a different amount rather than as a truncation. Not wider either, since the spare room
             // belongs to the free-text columns. Same reasoning as the existing `shouldRemoveTotalColumnFlex`.
-            if (isSizingColumns && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
+            //
+            // Only for a column of the sized table itself. A column belonging to some inner table rendered below it was
+            // never part of what was measured, so pinning it would hold it to a width chosen for a different layout.
+            if (isSizingColumns && sizedColumns.has(columnName) && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
                 return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: columnStyles.width, minWidth: columnStyles.width};
             }
 

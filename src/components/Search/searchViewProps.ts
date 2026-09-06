@@ -1,6 +1,8 @@
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
+
 import type {CardList, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
 
 import type React from 'react';
@@ -35,6 +37,13 @@ type CommonSearchViewProps = {
 
     /** Whether the action column uses its wider variant. */
     isActionColumnWide: boolean;
+
+    /**
+     * Which columns render in their wider variant, decided across the whole search rather than per row: a date carrying
+     * a year, an amount long enough to need the room. The column header already sizes itself from these, so the rows
+     * have to read the same ones or they line up against a header of a different width.
+     */
+    columnSizeOptions: GetReportTableColumnStylesParams;
 
     /** Whether mobile selection mode is on. */
     isMobileSelectionModeEnabled: boolean;

@@ -143,9 +143,9 @@ function WithdrawalIDListItemHeaderImpl({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN}
-                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN, {
-                    isWithdrawnColumnWide: !!withdrawalIDItem.shouldShowYearWithdrawn,
-                })}
+                // No per-row variant: one group carrying a past-year date widens the column for the table, and a row
+                // answering only for itself would sit a narrower cell under a wider heading.
+                style={getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN)}
             >
                 <TextWithTooltip
                     text={formattedWithdrawalDate}

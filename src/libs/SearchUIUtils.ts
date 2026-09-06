@@ -7002,14 +7002,25 @@ const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal;
 /** The margin and padding each row sits inside on both sides (`mh5` on its wrapper, `ph3` on the row). */
 const SEARCH_TABLE_ROW_CHROME_WIDTH = (20 + 12) * 2;
 
-function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean, columnMinWidths?: Partial<Record<SearchColumnType, number>>) {
+function getTableMinWidth(
+    columns: SearchColumnType[],
+    type?: SearchDataTypes,
+    isActionColumnWide?: boolean,
+    columnMinWidths?: Partial<Record<SearchColumnType, number>>,
+    shouldIncludeRowChrome = true,
+) {
     // Starts at 24px to account for the checkbox width
     let minWidth = 24;
 
     // The row lays out the checkbox, then every column, then the trailing arrow, as flex children of one gapped row, so
     // it spends a gap between each adjacent pair: one more than there are columns. Those gaps, the arrow, and the row's
     // own margin and padding are all width the table needs on top of the columns themselves.
-    minWidth += (columns.length + 1) * SEARCH_TABLE_COLUMN_GAP + SEARCH_TABLE_ROW_ARROW_WIDTH + SEARCH_TABLE_ROW_CHROME_WIDTH;
+    //
+    // A caller sizing something the rows only partly fill leaves this out, since reserving room the rows don't use there
+    // widens the table past what its heading covers.
+    if (shouldIncludeRowChrome) {
+        minWidth += (columns.length + 1) * SEARCH_TABLE_COLUMN_GAP + SEARCH_TABLE_ROW_ARROW_WIDTH + SEARCH_TABLE_ROW_CHROME_WIDTH;
+    }
 
     for (const column of columns) {
         // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates

@@ -1,8 +1,6 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isTransactionListItemType} from '@libs/SearchUIUtils';
-
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
 
 import type {CardList, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
@@ -29,6 +27,9 @@ type SearchListViewLayoutProps = {
 
     /** Whether the action column uses its wider variant. */
     isActionColumnWide: boolean;
+
+    /** Which columns render in their wider variant, decided across the whole search and shared with the column header. */
+    columnSizeOptions: GetReportTableColumnStylesParams;
 
     /** Whether a column header is present (gates horizontal scroll). */
     isHeaderVisible: boolean;
@@ -70,6 +71,7 @@ function SearchListViewLayout({
     columns,
     type,
     isActionColumnWide,
+    columnSizeOptions,
     isHeaderVisible,
     dataKey,
     isKeyboardShown,
@@ -107,20 +109,8 @@ function SearchListViewLayout({
     // columns across the width it wrongly claimed.
     const columnMinWidths: Partial<Record<SearchColumnType, number>> = {};
 
-    // Each row decides for itself whether these columns take their wide variant, from the value it renders: an amount
-    // long enough to need the room, or a date carrying a year. The table has to fit the widest row it holds, so one
-    // wide row widens the column for the whole table.
-    const transactionItems = (data ?? []).filter(isTransactionListItemType);
-    const columnSizeOptions: GetReportTableColumnStylesParams = {
-        isActionColumnWide,
-        isAmountColumnWide: transactionItems.some((item) => item.isAmountColumnWide),
-        isTaxAmountColumnWide: transactionItems.some((item) => item.isTaxAmountColumnWide),
-        isDateColumnWide: transactionItems.some((item) => item.shouldShowYear),
-        isSubmittedColumnWide: transactionItems.some((item) => item.shouldShowYearSubmitted),
-        isApprovedColumnWide: transactionItems.some((item) => item.shouldShowYearApproved),
-        isPostedColumnWide: transactionItems.some((item) => item.shouldShowYearPosted),
-        isExportedColumnWide: transactionItems.some((item) => item.shouldShowYearExported),
-    };
+    // The columns this table lays out, so the sizing below is applied to those and to nothing else that renders under it.
+    const sizedColumns = new Set(columns);
 
     // What each column would rather have than its minimum. Only the dynamic columns differ between the two: everything
     // else is pinned to one width, so it wants exactly what it is never squeezed below.
@@ -151,7 +141,11 @@ function SearchListViewLayout({
             style={styles.flex1}
             onLayout={handleTableLayout}
         >
-            <SearchColumnWidthsProvider columnWidths={columnWidths}>
+            <SearchColumnWidthsProvider
+                columnWidths={columnWidths}
+                sizedColumns={sizedColumns}
+                columnOptions={columnSizeOptions}
+            >
                 <HorizontalTableScroll
                     columns={columns}
                     type={type}

@@ -307,7 +307,9 @@ function TransactionGroupListExpandedImpl({
     };
 
     const dataColumns = currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? [];
-    const minTableWidth = getTableMinWidth(dataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide);
+    // Without the row chrome, because an expanded group's heading is rendered by the group row above rather than inside
+    // the scroller below. Widening this past what the heading is laid out in slides every row sideways from its column.
+    const minTableWidth = getTableMinWidth(dataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide, undefined, false);
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
     const content = (
