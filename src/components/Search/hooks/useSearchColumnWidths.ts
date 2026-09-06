@@ -14,7 +14,6 @@ import getSearchColumnContentToMeasure, {
 } from '@libs/getSearchColumnContentToMeasure';
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
 import createWidestTextMeasurer from '@libs/measureTextWidth/widestTextMeasurer';
-import {isTransactionListItemType} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -62,7 +61,8 @@ type UseSearchColumnWidthsParams = {
     /** Every column the table renders, in order. */
     columns: SearchColumnType[];
 
-    /** The table's rows, all of them, so widths don't shift as rows scroll in. Non-transaction rows are skipped. */
+    /** The table's rows, all of them, so widths don't shift as rows scroll in. A row of a kind the table can't read
+     * text from measures as empty and leaves its columns on their existing widths. */
     data: SearchListItem[];
 
     /** Whether dynamic sizing should run. Callers pass `false` on narrow layouts, where rows render as cards. */
@@ -107,10 +107,6 @@ function useSearchColumnWidths({columns, data, isEnabled, measurementContext}: U
         const measurer = createWidestTextMeasurer();
 
         for (const item of data) {
-            if (!isTransactionListItemType(item)) {
-                continue;
-            }
-
             for (const content of getSearchColumnContentToMeasure(column, item, translate, measurementContext)) {
                 measurer.add(content.text, content.font);
             }

@@ -1,5 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {ExpenseReportListItemType, SearchListItem, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 
 import variables from '@styles/variables';
@@ -19,6 +19,7 @@ import getBase62ReportID from './getBase62ReportID';
 import {getTagGLCode} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {getReportStatusTranslation} from './ReportUtils';
+import {isTransactionListItemType, isTransactionReportGroupListItemType} from './SearchUIUtils';
 import {getDecodedTagName} from './TagUtils';
 import {getDescription, getExchangeRate, getMerchantName, getTagForDisplay, getTaxName, isDeletedTransaction, isPerDiemRequest, isTimeRequest} from './TransactionUtils';
 
@@ -92,6 +93,8 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.FROM,
     CONST.SEARCH.TABLE_COLUMNS.TO,
+    CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER,
+    CONST.SEARCH.TABLE_COLUMNS.PAID_BY,
     CONST.SEARCH.TABLE_COLUMNS.TITLE,
     CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
     CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
@@ -122,6 +125,8 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'common.tag',
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'common.from',
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'common.to',
+    [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: 'search.filters.firstApprover',
+    [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: 'search.filters.paidBy',
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'common.title',
     [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: 'common.longReportID',
     [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'common.reportID',
@@ -144,6 +149,8 @@ function getSearchColumnExtraWidth(column: SearchColumnType): number {
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
         case CONST.SEARCH.TABLE_COLUMNS.TO:
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+        case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
             return editableCellWidth + USER_INFO_CELL_AVATAR_WIDTH;
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return editableCellWidth + STATUS_BADGE_CHROME_WIDTH;
@@ -158,7 +165,7 @@ function getSearchColumnExtraWidth(column: SearchColumnType): number {
  * Mirrors the cell rather than the raw field, since the two differ: a scanning expense shows a status string in place
  * of its merchant, and a tag is shown with its parent levels stripped.
  */
-function getSearchColumnContentToMeasure(
+function getTransactionColumnContentToMeasure(
     column: SearchColumnType,
     item: TransactionListItemType,
     translate: LocalizedTranslate,
@@ -214,6 +221,60 @@ function getSearchColumnContentToMeasure(
         default:
             return [];
     }
+}
+
+/**
+ * Returns the text an expense-report row renders for one column.
+ *
+ * A report row is a group row rather than a transaction, so its cells read report fields: the report's own name for the
+ * title, and the formatted display names the row was built with for the people columns.
+ */
+function getExpenseReportColumnContentToMeasure(column: SearchColumnType, item: ExpenseReportListItemType, translate: LocalizedTranslate): SearchColumnContent[] {
+    switch (column) {
+        case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+            // The status renders in a badge rather than the row's own text style, so it is measured in the badge's font.
+            return [{text: getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate}), font: {fontSize: variables.fontSizeExtraSmall}}];
+        case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            return [{text: item.reportName}];
+        case CONST.SEARCH.TABLE_COLUMNS.FROM:
+            return [{text: item.formattedFrom}];
+        case CONST.SEARCH.TABLE_COLUMNS.TO:
+            return [{text: item.formattedTo}];
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+            return [{text: item.firstApproverAccountID ? item.formattedFirstApprover : ''}];
+        case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
+            return [{text: item.paidByAccountID ? item.formattedPaidBy : ''}];
+        case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+            return [{text: item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID}];
+        case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+            return [{text: item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))}];
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+            return [{text: item.submitterUserID}];
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+            return [{text: item.submitterPayrollID}];
+        case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
+            return [{text: item.orderDealNumbers}];
+        default:
+            return [];
+    }
+}
+
+/**
+ * Returns the text a column renders for one row, whatever kind of row the table holds.
+ *
+ * Each kind reads its own fields, so a column measured for one is not measured the same way for another: a transaction's
+ * `from` is the person who spent, while a report's is the person who submitted, and they are stored differently.
+ */
+function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchListItem, translate: LocalizedTranslate, context: SearchColumnMeasurementContext = {}): SearchColumnContent[] {
+    if (isTransactionListItemType(item)) {
+        return getTransactionColumnContentToMeasure(column, item, translate, context);
+    }
+
+    if (isTransactionReportGroupListItemType(item)) {
+        return getExpenseReportColumnContentToMeasure(column, item, translate);
+    }
+
+    return [];
 }
 
 export default getSearchColumnContentToMeasure;
