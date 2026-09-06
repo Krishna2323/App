@@ -99,12 +99,12 @@ function SearchListViewLayout({
     });
 
     // The scroller decides whether to scroll by summing what each column refuses to shrink below, which it otherwise has
-    // to estimate. Every minimum it can be told exactly is resolved here instead.
+    // to estimate. Every minimum it can be told exactly is resolved here instead: a dynamic column measured its own, and
+    // any other column that declares a width is never laid out narrower than it.
     //
-    // While sizing is active a dynamic column knows its own minimum, and every other column is pinned to the width it
-    // declares, so that declared width is its minimum. When sizing is off the columns keep their flex behavior and the
-    // scroller's own estimates still apply, which is why nothing is resolved for them here.
-    const isSizingColumns = Object.keys(columnWidths).length > 0;
+    // This applies to every view, sized or not. The estimates run several columns 70px or more over their real width, so
+    // a table left on them reserves room it never uses, scrolls before it has run out of space, and then stretches its
+    // columns across the width it wrongly claimed.
     const columnMinWidths: Partial<Record<SearchColumnType, number>> = {};
 
     // Each row decides for itself whether these columns take their wide variant, from the value it renders: an amount
@@ -132,14 +132,15 @@ function SearchListViewLayout({
         if (sizing) {
             columnMinWidths[column] = sizing.minWidth;
             columnContentWidths[column] = sizing.contentWidth;
-        } else if (isSizingColumns) {
-            const declaredWidth = StyleUtils.getReportTableColumnStyles(column, columnSizeOptions).width;
+            continue;
+        }
 
-            // A column styled with flex alone declares no width, so the scroller keeps estimating that one.
-            if (typeof declaredWidth === 'number') {
-                columnMinWidths[column] = declaredWidth;
-                columnContentWidths[column] = declaredWidth;
-            }
+        const declaredWidth = StyleUtils.getReportTableColumnStyles(column, columnSizeOptions).width;
+
+        // A column styled with flex alone declares no width, so the scroller keeps estimating that one.
+        if (typeof declaredWidth === 'number') {
+            columnMinWidths[column] = declaredWidth;
+            columnContentWidths[column] = declaredWidth;
         }
     }
 
